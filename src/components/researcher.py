@@ -1,7 +1,7 @@
 from typing import Type
 from crewai import Agent, Task, Crew, Process, LLM
-from crewai_tools import BaseTool
-from pydantic import BaseModel, Field
+# from crewai_tools import BaseTool
+# from pydantic import BaseModel, Field
 from exa_py import Exa
 
 import re

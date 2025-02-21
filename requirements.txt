@@ -3,4 +3,8 @@ crewai-tools
 streamlit
 exa-py
 requests
-pysqlite3-binary
+pysqlite3
+PyPDF2
+pypandoc
+python-magic
+# pysqlite3-binary

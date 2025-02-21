@@ -85,26 +85,26 @@ def render_sidebar():
                         help="Choose from your locally available Ollama models. For best results, use models known to handle function calling well (e.g., mixtral, openhermes)."
                     )
         
-        with st.expander("🔑 API Keys", expanded=True):
-            st.info("API keys are stored temporarily in memory and cleared when you close the browser.")
-            if provider == "OpenAI":
-                openai_api_key = st.text_input(
-                    "OpenAI API Key",
-                    type="password",
-                    placeholder="Enter your OpenAI API key",
-                    help="Enter your OpenAI API key"
-                )
-                if openai_api_key:
-                    os.environ["OPENAI_API_KEY"] = openai_api_key
-            elif provider == "GROQ":
-                groq_api_key = st.text_input(
-                    "GROQ API Key",
-                    type="password",
-                    placeholder="Enter your GROQ API key",
-                    help="Enter your GROQ API key"
-                )
-                if groq_api_key:
-                    os.environ["GROQ_API_KEY"] = groq_api_key
+        # with st.expander("🔑 API Keys", expanded=True):
+        #     st.info("API keys are stored temporarily in memory and cleared when you close the browser.")
+        #     if provider == "OpenAI":
+        #         openai_api_key = st.text_input(
+        #             "OpenAI API Key",
+        #             type="password",
+        #             placeholder="Enter your OpenAI API key",
+        #             help="Enter your OpenAI API key"
+        #         )
+        #         if openai_api_key:
+        #             os.environ["OPENAI_API_KEY"] = openai_api_key
+        #     elif provider == "GROQ":
+        #         groq_api_key = st.text_input(
+        #             "GROQ API Key",
+        #             type="password",
+        #             placeholder="Enter your GROQ API key",
+        #             help="Enter your GROQ API key"
+        #         )
+        #         if groq_api_key:
+        #             os.environ["GROQ_API_KEY"] = groq_api_key
             
             # Only show EXA key input if not using Ollama
             if provider != "Ollama":

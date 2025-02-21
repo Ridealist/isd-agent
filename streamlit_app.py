@@ -181,16 +181,16 @@ if selection["provider"] == "Ollama" and not selection["model"]:
 #     )
 
 # Convert Markdown to DOCX using a temporary file
-def convert_md_to_docx(md_text):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmpfile:
-        pypandoc.convert_text(md_text, "docx", format="md", outputfile=tmpfile.name)
-        tmpfile_path = tmpfile.name
+# def convert_md_to_docx(md_text):
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmpfile:
+#         pypandoc.convert_text(md_text, "docx", format="md", outputfile=tmpfile.name)
+#         tmpfile_path = tmpfile.name
 
-    # Read the DOCX file into memory
-    with open(tmpfile_path, "rb") as docx_file:
-        docx_data = docx_file.read()
+#     # Read the DOCX file into memory
+#     with open(tmpfile_path, "rb") as docx_file:
+#         docx_data = docx_file.read()
 
-    return docx_data
+#     return docx_data
 
 if st.session_state["analyze_ready"]:
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -233,8 +233,8 @@ if st.session_state["analyze_ready"]:
         # Convert CrewOutput to string for display and download
         result_text = str(final_report)
         
-        # Convert Markdown to DOCX
-        docx_data = convert_md_to_docx(result_text)
+        # # Convert Markdown to DOCX
+        # docx_data = convert_md_to_docx(result_text)
         
         # Display the final result
         st.markdown(result_text)
@@ -245,23 +245,23 @@ if st.session_state["analyze_ready"]:
         with download_col2:
             st.markdown("### 📥 Download Research Report")
 
-            # # Download as Markdown
-            # st.download_button(
-            #     label="Download Report",
-            #     data=result_text,
-            #     file_name="research_report.md",
-            #     mime="text/markdown",
-            #     help="Download the research report in Markdown format"
-            # )
-
-            # Download as DOCX
+            # Download as Markdown
             st.download_button(
-                label="Download as DOCX",
-                data=docx_data,
-                file_name="research_report.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                help="Download the research report in Word format"
+                label="Download Report as Mardown",
+                data=result_text,
+                file_name="research_report.md",
+                mime="text/markdown",
+                help="Download the research report in Markdown format"
             )
+
+            # # Download as DOCX
+            # st.download_button(
+            #     label="Download as DOCX",
+            #     data=docx_data,
+            #     file_name="research_report.docx",
+            #     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            #     help="Download the research report in Word format"
+            # )
 
             st.session_state["analyze_ready"] = False
 

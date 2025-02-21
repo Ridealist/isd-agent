@@ -19,9 +19,9 @@ class GapAnalysisCrew:
 
     def pm(self) -> Agent:
         return Agent(
-            role="Project Manager",
+            role="프로젝트 매니저",
             goal="차이 분석 프로세스를 감독하고 고품질 결과물 보장",
-            backstory="""당신은 요구사항 분석과 차이 식별에 전문성을 가진 경험 많은 PM입니다.
+            backstory="""당신은 요구사항 분석과 차이 식별에 전문성을 가진 경험 많은 프로젝트 매니저입니다.
             연구 활동을 지휘하고 발견사항을 실행 가능한 통찰력으로 종합하는 데 탁월합니다.""",
             verbose=True,
             allow_delegation=True,
@@ -215,15 +215,15 @@ class StreamToExpander:
 
         # Replace agent names with the new ones and apply colors
         if "Project Manager" in cleaned_data:
-            cleaned_data = cleaned_data.replace("Project Manager", f":{self.colors[self.color_index]}[Project Manager]")
+            cleaned_data = cleaned_data.replace("프로젝트 매니저", f":{self.colors[self.color_index]}[프로젝트 매니저]")
         if "수행 분석 연구원" in cleaned_data:
-            cleaned_data = cleaned_data.replace("수행 분석 연구원", f":{self.colors[self.color_index]}[Performance Researcher]")
+            cleaned_data = cleaned_data.replace("수행 분석 연구원", f":{self.colors[self.color_index]}[수행 분석 연구원]")
         if "성과 분석 연구원" in cleaned_data:
-            cleaned_data = cleaned_data.replace("성과 분석 연구원", f":{self.colors[self.color_index]}[Achievement Researcher]")
+            cleaned_data = cleaned_data.replace("성과 분석 연구원", f":{self.colors[self.color_index]}[성과 분석 연구원]")
         if "환경 분석 연구원" in cleaned_data:
-            cleaned_data = cleaned_data.replace("환경 분석 연구원", f":{self.colors[self.color_index]}[Environment Researcher]")
+            cleaned_data = cleaned_data.replace("환경 분석 연구원", f":{self.colors[self.color_index]}[환경 분석 연구원]")
         if "원인 및 해결방안 연구원" in cleaned_data:
-            cleaned_data = cleaned_data.replace("원인 및 해결방안 연구원", f":{self.colors[self.color_index]}[Solution Researcher]")
+            cleaned_data = cleaned_data.replace("원인 및 해결방안 연구원", f":{self.colors[self.color_index]}[원인 및 해결방안 연구원]")
         if "Finished chain." in cleaned_data:
             cleaned_data = cleaned_data.replace("Finished chain.", f":{self.colors[self.color_index]}[Finished chain.]")
 

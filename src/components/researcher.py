@@ -1,7 +1,7 @@
 from typing import Type
+from textwrap import dedent
 from crewai import Agent, Task, Crew, Process, LLM
 # from crewai_tools import BaseTool
-# from pydantic import BaseModel, Field
 from exa_py import Exa
 
 import re
@@ -9,14 +9,35 @@ import requests
 import streamlit as st
 import os
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class GapAnalysisCrew:
-    def __init__(self):
-        self.llm_config = {
-            "temperature": 0.7,
-            "request_timeout": 120
-        }
+    ###
+    ## LLM Settings
+    ###
+    def __init__(self, client_analysis, interview_analysis):
+        self.general_llm = LLM(
+                model="openai/gpt-4o", # call model by provider/model_name
+                temperature=0.7,
+                top_p=0.9,
+                request_timeout=120
+            )
+        self.manager_llm = LLM(
+                model="openai/o1-mini", # call model by provider/model_name
+                temperature=0.8,
+                top_p=0.9,
+                frequency_penalty=0.1,
+                presence_penalty=0.1,
+                stop=["END"],
+                seed=42
+            )
+        self.client_analysis = client_analysis
+        self.interview_analysis = interview_analysis
 
+    ###
+    ## Agents Settings
+    ###
     def pm(self) -> Agent:
         return Agent(
             role="프로젝트 매니저",
@@ -25,7 +46,7 @@ class GapAnalysisCrew:
             연구 활동을 지휘하고 발견사항을 실행 가능한 통찰력으로 종합하는 데 탁월합니다.""",
             verbose=True,
             allow_delegation=True,
-            llm_config=self.llm_config
+            llm=self.manager_llm
         )
 
     def performance_researcher(self) -> Agent:
@@ -35,7 +56,7 @@ class GapAnalysisCrew:
             backstory="""당신은 프로젝트 수행과 관련된 차이를 분석하는 전문가입니다.
             프로젝트 진행 과정, 방법론, 실행 상의 차이점을 식별하고 분석합니다.""",
             verbose=True,
-            llm_config=self.llm_config
+            llm=self.general_llm
         )
 
     def achievement_researcher(self) -> Agent:
@@ -45,7 +66,7 @@ class GapAnalysisCrew:
             backstory="""당신은 성과 지표와 달성도를 분석하는 전문가입니다.
             목표 대비 실제 성과의 차이를 정량적, 정성적으로 분석합니다.""",
             verbose=True,
-            llm_config=self.llm_config
+            llm=self.general_llm
         )
 
     def environment_researcher(self) -> Agent:
@@ -55,7 +76,7 @@ class GapAnalysisCrew:
             backstory="""당신은 프로젝트에 영향을 미치는 환경적 요인을 분석하는 전문가입니다.
             내/외부 환경 요인들이 미치는 영향과 차이점을 분석합니다.""",
             verbose=True,
-            llm_config=self.llm_config
+            llm=self.general_llm
         )
 
     def solution_researcher(self) -> Agent:
@@ -65,69 +86,106 @@ class GapAnalysisCrew:
             backstory="""당신은 문제의 근본 원인을 파악하고 실현 가능한 해결책을 제시하는 전문가입니다.
             차이가 발생한 원인을 분석하고 실질적인 해결방안을 제시합니다.""",
             verbose=True,
-            llm_config=self.llm_config
+            llm=self.general_llm
         )
 
-    def analyze_performance(self) -> Task:
-        return Task(
-            description="""
-            클라이언트 요구사항과 인터뷰 분석 결과를 비교하여 수행 관련 차이를 분석하시오.
+    ###
+    ## Tasks Settings
+    ###
+    # def identify_task(self, agent, origin, cities, interests, range):
+    #     return Task(description=dedent(f"""
+    #         Analyze and select the best city for the trip based
+    #         on specific criteria such as weather patterns, seasonal
+    #         events, and travel costs. This task involves comparing
+    #         multiple cities, considering factors like current weather
+    #         conditions, upcoming cultural or seasonal events, and
+    #         overall travel expenses.
+
+    #         Your final answer must be a detailed
+    #         report on the chosen city, and everything you found out
+    #         about it, including the actual flight costs, weather
+    #         forecast and attractions.
+    #         {self.__tip_section()}
+
+    #         Traveling from: {origin}
+    #         City Options: {cities}
+    #         Trip Date: {range}
+    #         Traveler Interests: {interests}
+    #       """),
+    #         expected_output="A detailed report on the chosen city with flight costs, weather forecast, and attractions.",
+    #         agent=agent)
+
+    def analyze_performance(self, client_analysis, interview_analysis) -> Task:
+        return Task(description=dedent(f"""
+            "클라이언트 요구사항"과 "인터뷰 분석 결과"를 비교하여 수행 관련 차이를 분석하시오.
             - 프로젝트 진행 방식의 차이
             - 실행 과정상의 차이
             - 방법론적 차이
-            """,
+
+            > 클라이언트 요구사항: {client_analysis}
+            > 인터뷰 분석 결과: {interview_analysis}
+        """),
             agent=self.performance_researcher(),
             expected_output="수행 관련 차이점 분석 보고서"
         )
 
-    def analyze_achievement(self) -> Task:
-        return Task(
-            description="""
-            클라이언트 요구사항과 인터뷰 분석 결과를 비교하여 성과 관련 차이를 분석하시오.
+    def analyze_achievement(self, client_analysis, interview_analysis) -> Task:
+        return Task(description=dedent(f"""
+            "클라이언트 요구사항"과 "인터뷰 분석 결과"를 비교하여 성과 관련 차이를 분석하시오.
             - 목표 대비 실제 성과
             - 정량적/정성적 차이
             - KPI 달성도 차이
-            """,
+
+            > 클라이언트 요구사항: {client_analysis}
+            > 인터뷰 분석 결과: {interview_analysis}
+        """),
             agent=self.achievement_researcher(),
             expected_output="성과 관련 차이점 분석 보고서"
         )
 
-    def analyze_environment(self) -> Task:
-        return Task(
-            description="""
-            클라이언트 요구사항과 인터뷰 분석 결과를 비교하여 환경 관련 차이를 분석하시오.
+    def analyze_environment(self, client_analysis, interview_analysis) -> Task:
+        return Task(description=dedent(f"""
+            "클라이언트 요구사항"과 "인터뷰 분석 결과"를 비교하여 환경 관련 차이를 분석하시오.
             - 내부 환경 요인 차이
             - 외부 환경 요인 차이
             - 환경적 제약사항 차이
-            """,
+
+            > 클라이언트 요구사항: {client_analysis}
+            > 인터뷰 분석 결과: {interview_analysis}
+        """),
             agent=self.environment_researcher(),
             expected_output="환경 관련 차이점 분석 보고서"
         )
 
-    def analyze_solution(self) -> Task:
-        return Task(
-            description="""
+    def analyze_solution(self, client_analysis, interview_analysis) -> Task:
+        return Task(description=dedent(f"""
             앞선 분석 결과들을 검토하여 원인과 해결방안을 도출하시오.
             - 차이 발생의 근본 원인
             - 실현 가능한 해결방안
             - 우선순위 및 실행 계획
-            """,
+
+            > 클라이언트 요구사항: {client_analysis}
+            > 인터뷰 분석 결과: {interview_analysis}
+        """),
             agent=self.solution_researcher(),
             expected_output="원인 및 해결방안 보고서"
         )
 
-    def compile_final_report(self) -> Task:
-        return Task(
-            description="""
+    def compile_final_report(self, client_analysis, interview_analysis) -> Task:
+        return Task(description=dedent(f"""
             모든 분석 결과를 종합하여 최종 보고서를 작성하시오.
             - 각 영역별 주요 차이점
             - 핵심 원인 분석
             - 권장 해결방안
             - 실행 계획
-            """,
+
+            > 클라이언트 요구사항: {client_analysis}
+            > 인터뷰 분석 결과: {interview_analysis}
+        """),
             agent=self.pm(),
             expected_output="최종 차이 분석 보고서"
         )
+
 
     def crew(self) -> Crew:
         return Crew(
@@ -139,14 +197,16 @@ class GapAnalysisCrew:
                 self.solution_researcher()
             ],
             tasks=[
-                self.analyze_performance(),
-                self.analyze_achievement(),
-                self.analyze_environment(),
-                self.analyze_solution(),
-                self.compile_final_report()
+                self.analyze_performance(self.client_analysis, self.interview_analysis),
+                self.analyze_achievement(self.client_analysis, self.interview_analysis),
+                self.analyze_environment(self.client_analysis, self.interview_analysis),
+                self.analyze_solution(self.client_analysis, self.interview_analysis),
+                self.compile_final_report(self.client_analysis, self.interview_analysis)
             ],
             process=Process.sequential,
-            verbose=True
+            verbose=True,
+            memory=True,
+            manager_agent=self.pm()
         )
 
     def analyze(self, client_analysis: str, interview_analysis: str): # , message_queue):
@@ -189,7 +249,7 @@ class StreamToExpander:
     def __init__(self, expander):
         self.expander = expander
         self.buffer = []
-        self.colors = ['red', 'green', 'blue', 'orange', 'purple']  # Added one more color for the additional agent
+        self.colors = ['red', 'green', 'blue', 'orange', 'violet', 'gray']  # Added one more color for the additional agent
         self.color_index = 0
 
     def write(self, data):
@@ -213,16 +273,35 @@ class StreamToExpander:
             self.color_index = (self.color_index + 1) % len(self.colors)
             cleaned_data = cleaned_data.replace("Entering new CrewAgentExecutor chain", f":{self.colors[self.color_index]}[Entering new CrewAgentExecutor chain]")
 
+        cleaned_data = cleaned_data.split("> 클라이언트 요구사항:")[0].strip()
+
+        current_agent = None
+
         # Replace agent names with the new ones and apply colors
-        if "Project Manager" in cleaned_data:
+        if "프로젝트 매니저" in cleaned_data:
+            if current_agent != "프로젝트 매니저":
+                current_agent = "프로젝트 매니저"
+                self.color_index = (self.color_index + 1) % len(self.colors)
             cleaned_data = cleaned_data.replace("프로젝트 매니저", f":{self.colors[self.color_index]}[프로젝트 매니저]")
         if "수행 분석 연구원" in cleaned_data:
+            if current_agent != "수행 분석 연구원":
+                current_agent = "수행 분석 연구원"
+                self.color_index = (self.color_index + 1) % len(self.colors)
             cleaned_data = cleaned_data.replace("수행 분석 연구원", f":{self.colors[self.color_index]}[수행 분석 연구원]")
         if "성과 분석 연구원" in cleaned_data:
+            if current_agent != "성과 분석 연구원":
+                current_agent = "성과 분석 연구원"
+                self.color_index = (self.color_index + 1) % len(self.colors)
             cleaned_data = cleaned_data.replace("성과 분석 연구원", f":{self.colors[self.color_index]}[성과 분석 연구원]")
         if "환경 분석 연구원" in cleaned_data:
+            if current_agent != "환경 분석 연구원":
+                current_agent = "환경 분석 연구원"
+                self.color_index = (self.color_index + 1) % len(self.colors)
             cleaned_data = cleaned_data.replace("환경 분석 연구원", f":{self.colors[self.color_index]}[환경 분석 연구원]")
         if "원인 및 해결방안 연구원" in cleaned_data:
+            if current_agent != "원인 및 해결방안 연구원":
+                current_agent = "원인 및 해결방안 연구원"
+                self.color_index = (self.color_index + 1) % len(self.colors)
             cleaned_data = cleaned_data.replace("원인 및 해결방안 연구원", f":{self.colors[self.color_index]}[원인 및 해결방안 연구원]")
         if "Finished chain." in cleaned_data:
             cleaned_data = cleaned_data.replace("Finished chain.", f":{self.colors[self.color_index]}[Finished chain.]")

@@ -46,15 +46,25 @@ def render_sidebar():
             )
             
             if provider == "OpenAI":
-                model_option = st.selectbox(
-                    "Select OpenAI Model",
-                    ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o1-preview", "o3-mini", "Custom"],
+                model_option_summarization = st.selectbox(
+                    "Select Summarization Model",
+                    ["gpt-4o-mini"],
                     index=0
                 )
-                if model_option == "Custom":
-                    model = st.text_input("Enter your custom OpenAI model:", value="", help="Specify your custom model string")
-                else:
-                    model = model_option
+                model_option_general = st.selectbox(
+                    "Select General Model",
+                    ["gpt-4o"],
+                    index=0
+                )
+                model_option_manager = st.selectbox(
+                    "Select Manager Model",
+                    ["o1-mini"],
+                    index=0
+                )
+                # if model_option == "Custom":
+                #     model = st.text_input("Enter your custom OpenAI model:", value="", help="Specify your custom model string")
+                # else:
+                #     model = model_option
             elif provider == "GROQ":
                 model = st.selectbox(
                     "Select GROQ Model",
@@ -107,15 +117,15 @@ def render_sidebar():
         #             os.environ["GROQ_API_KEY"] = groq_api_key
             
             # Only show EXA key input if not using Ollama
-            if provider != "Ollama":
-                exa_api_key = st.text_input(
-                    "EXA API Key",
-                    type="password",
-                    placeholder="Enter your EXA API key",
-                    help="Enter your EXA API key for web search capabilities"
-                )
-                if exa_api_key:
-                    os.environ["EXA_API_KEY"] = exa_api_key
+            # if provider != "Ollama":
+            #     exa_api_key = st.text_input(
+            #         "EXA API Key",
+            #         type="password",
+            #         placeholder="Enter your EXA API key",
+            #         help="Enter your EXA API key for web search capabilities"
+            #     )
+            #     if exa_api_key:
+            #         os.environ["EXA_API_KEY"] = exa_api_key
 
         st.write("")
         with st.expander("ℹ️ About", expanded=False):
@@ -137,7 +147,16 @@ def render_sidebar():
                 - Best results with models that handle function calling (e.g., mixtral, openhermes)
                 - Web search functionality is disabled for Ollama models
             """)
-    return {
-        "provider": provider,
-        "model": model
-    }
+
+    if provider == "OpenAI":
+        return {
+            "provider": provider,
+            "model_option_summarization": model_option_summarization,
+            "model_option_general": model_option_general,
+            "model_option_manager": model_option_manager
+        }
+    else:
+        return {
+            "provider": provider,
+            "model": model
+        }

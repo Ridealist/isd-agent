@@ -47,26 +47,26 @@ def render_sidebar():
             )
             
             if provider == "OpenAI":
-                model = st.selectbox(
-                    "Select Model",
-                    ["gpt-4o-mini"],
-                    index=0 
-                )
+                # model = st.selectbox(
+                #     "Select Model",
+                #     ["gpt-4o-mini"],
+                #     index=0 
+                # )
                 # model_option_summarization = st.selectbox(
                 #     "Select Summarization Model",
                 #     ["gpt-4o-mini"],
                 #     index=0
                 # )
-                # model_option_general = st.selectbox(
-                #     "Select General Model",
-                #     ["gpt-4o"],
-                #     index=0
-                # )
-                # model_option_manager = st.selectbox(
-                #     "Select Manager Model",
-                #     ["o1-mini"],
-                #     index=0
-                # )
+                model_option_general = st.selectbox(
+                    "Select General Model",
+                    ["gpt-4o-mini"],
+                    index=0
+                )
+                model_option_manager = st.selectbox(
+                    "Select Manager Model",
+                    ["o1-mini"],
+                    index=0
+                )
                 # if model_option == "Custom":
                 #     model = st.text_input("Enter your custom OpenAI model:", value="", help="Specify your custom model string")
                 # else:
@@ -155,14 +155,14 @@ def render_sidebar():
         #     """)
 
     # if provider == "OpenAI":
-    #     return {
-    #         "provider": provider,
-    #         "model_option_summarization": model_option_summarization,
-    #         "model_option_general": model_option_general,
-    #         "model_option_manager": model_option_manager
-    #     }
-    # else:
     return {
         "provider": provider,
-        "model": model
+        # "model_option_summarization": model_option_summarization,
+        "model_option_general": model_option_general,
+        "model_option_manager": model_option_manager
     }
+    # else:
+    # return {
+    #     "provider": provider,
+    #     "model": model
+    # }

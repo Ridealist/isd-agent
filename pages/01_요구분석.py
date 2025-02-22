@@ -68,6 +68,7 @@ if "client_analysis" not in st.session_state:
 if "interview_analysis" not in st.session_state:
     st.session_state["interview_analysis"] = None
 
+
 ### PDF-File Handler
 
 def process_pdf_file(file) -> str:

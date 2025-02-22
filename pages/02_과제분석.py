@@ -32,6 +32,21 @@ from src.utils.output_handler import capture_output
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+#--------------------------------#
+#         Streamlit Session State         #
+#--------------------------------#
+if "analyze_ready" not in st.session_state:
+    st.session_state["analyze_ready"] = False
+
+if "client_analysis" not in st.session_state:
+    st.session_state["client_analysis"] = None
+
+if "interview_analysis" not in st.session_state:
+    st.session_state["interview_analysis"] = None
+
+
+
 #--------------------------------#
 #         Streamlit App          #
 #--------------------------------#

@@ -24,7 +24,7 @@ class GapAnalysisCrew:
                 request_timeout=120
             )
         self.manager_llm = LLM(
-                model="openai/gpt-4o-mini", # call model by provider/model_name
+                model="openai/o1-mini", # call model by provider/model_name
                 temperature=0.8,
                 top_p=0.9,
                 frequency_penalty=0.1,
@@ -45,7 +45,7 @@ class GapAnalysisCrew:
             backstory="""당신은 요구사항 분석과 차이 식별에 전문성을 가진 경험 많은 프로젝트 매니저입니다.
             연구 활동을 지휘하고 발견사항을 실행 가능한 통찰력으로 종합하는 데 탁월합니다.""",
             verbose=True,
-            allow_delegation=True,
+            # allow_delegation=True,
             llm=self.manager_llm
         )
 
@@ -171,19 +171,46 @@ class GapAnalysisCrew:
             expected_output="원인 및 해결방안 보고서"
         )
 
+    # def compile_final_report(self, client_analysis, interview_analysis) -> Task:
+    #     return Task(description=dedent(f"""
+    #         모든 분석 결과를 종합하여 최종 보고서를 작성하시오.
+    #         - 각 영역별 주요 차이점
+    #         - 핵심 원인 분석
+    #         - 권장 해결방안
+    #         - 실행 계획
+
+    #         > 클라이언트 요구사항: {client_analysis}
+    #         > 인터뷰 분석 결과: {interview_analysis}
+    #     """),
+    #         agent=self.pm(),
+    #         expected_output="최종 차이 분석 보고서"
+    #     )
+
     def compile_final_report(self, client_analysis, interview_analysis) -> Task:
         return Task(description=dedent(f"""
-            모든 분석 결과를 종합하여 최종 보고서를 작성하시오.
-            - 각 영역별 주요 차이점
-            - 핵심 원인 분석
-            - 권장 해결방안
-            - 실행 계획
+            클라이언트 요구사항과 인터뷰 분석 결과를 종합적 맥락으로 고려하여 각 수행 종류별 분석 보고서를 작성하시오.
 
-            > 클라이언트 요구사항: {client_analysis}
-            > 인터뷰 분석 결과: {interview_analysis}
-        """),
+            참고 맥락:
+            > 클라이언트 맥락: {client_analysis}
+            > 인터뷰 맥락: {interview_analysis}
+
+            위 맥락을 기반으로 각 수행 종류별로 다음 구조에 따라 분석하시오:
+
+            1. 수행의 종류(1): {"수행 문제 상황 (1)에 대한 한 문장 설명"}
+                * 1.1. 원인 분석
+                * 1.2. 교육적 해결안
+                * 1.3. 교육외적 해결안 (있을 경우만 서술 / 없을 경우 제외)
+
+            2. 수행의 종류(2): {"수행 문제 상황 (2)에 대한 한 문장 설명"}
+                * 2.1. 원인 분석
+                * 2.2. 교육적 해결안
+                * 2.3. 교육외적 해결안  (있을 경우만 서술 / 없을 경우 제외)            
+            ...
+
+            (수행 종류는 우선 순위와 중요도를 기준으로 최대 3개까지만 서술)
+            """),
             agent=self.pm(),
-            expected_output="최종 차이 분석 보고서"
+            expected_output="맥락 기반 수행 종류별 원인 분석 및 해결방안 종합 보고서"
         )
 
 
@@ -274,6 +301,9 @@ class StreamToExpander:
             cleaned_data = cleaned_data.replace("Entering new CrewAgentExecutor chain", f":{self.colors[self.color_index]}[Entering new CrewAgentExecutor chain]")
 
         cleaned_data = cleaned_data.split("> 클라이언트 요구사항:")[0].strip()
+        # 정규 표현식을 사용하여 특정 패턴을 제거
+        pattern = r"[\s]*참고 맥락:.*?위 맥락을 기반으로 각 수행 종류별로 다음 구조에 따라 분석하시오:\n"
+        cleaned_data = re.sub(pattern, "", cleaned_data, flags=re.DOTALL)
 
         current_agent = None
 

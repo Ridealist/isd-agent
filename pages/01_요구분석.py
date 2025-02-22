@@ -17,6 +17,9 @@ import io
 import logging
 import streamlit as st
 import os
+import uuid  # Add this import at the top with other imports
+from datetime import datetime
+import pytz  # Add this import at the top with other imports
 
 from src.components.llm import get_chat_completion
 from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT
@@ -24,6 +27,7 @@ from src.components.sidebar import render_sidebar
 from src.components.researcher import GapAnalysisCrew, StreamToExpander
 # from src.components.researcher import create_researcher, create_research_task, run_research
 from src.utils.output_handler import capture_output
+from src.components.db import DynamoDBManager
 
 
 # 로깅 설정
@@ -51,6 +55,10 @@ st.logo(
 #--------------------------------#
 #         Streamlit Session State         #
 #--------------------------------#
+# Initialize UUID for the session if not already present
+if "session_id" not in st.session_state:
+    st.session_state["session_id"] = str(uuid.uuid4())
+
 if "analyze_ready" not in st.session_state:
     st.session_state["analyze_ready"] = False
 
@@ -109,26 +117,65 @@ uploaded_file_interview = st.file_uploader(
 def analyze_files(client_file, interview_file):
     logger.info("Received analysis request")
     
-    # try:
+    # DynamoDB 매니저 초기화
+    db_manager = DynamoDBManager()
+    # Get current time in KST
+    kst = pytz.timezone('Asia/Seoul')
+    timestamp = datetime.now(kst).isoformat()
+    
     # 클라이언트 파일 처리
     client_content = process_pdf_file(client_file)
     client_prompt = CLIENT_REQUIREMENTS_PROMPT.format(text=client_content)
+    
+    # 사용자 입력 저장
+    db_manager.insert_chat_data(
+        student_id=st.session_state["session_id"],
+        timestamp=timestamp,
+        who="user",
+        content=client_content,
+        context="requirements_analysis"
+    )
+    
     client_analysis = get_chat_completion(client_prompt)
+    
+    # AI 응답 저장
+    db_manager.insert_chat_data(
+        student_id=st.session_state["session_id"],
+        timestamp=datetime.now(kst).isoformat(),  # Use KST
+        who="agent",
+        content=client_analysis,
+        context="requirements_analysis"
+    )
     
     # 인터뷰 파일 처리
     interview_content = process_pdf_file(interview_file)
     interview_prompt = INTERVIEW_PROMPT.format(text=interview_content)
+    
+    # 사용자 입력 저장
+    db_manager.insert_chat_data(
+        student_id=st.session_state["session_id"],
+        timestamp=datetime.now(kst).isoformat(),  # Use KST
+        who="user",
+        content=interview_content,
+        context="interview_analysis"
+    )
+    
     interview_analysis = get_chat_completion(interview_prompt)
+    
+    # AI 응답 저장
+    db_manager.insert_chat_data(
+        student_id=st.session_state["session_id"],
+        timestamp=datetime.now(kst).isoformat(),  # Use KST
+        who="agent",
+        content=interview_analysis,
+        context="interview_analysis"
+    )
     
     return {
         "status": "success",
         "client_analysis": client_analysis,
         "interview_analysis": interview_analysis
     }
-    
-    # except Exception as e:
-    #     logger.error(f"Analysis failed: {str(e)}", exc_info=True)
-    #     raise HTTPException(status_code=500, detail=str(e))
 
 
 # def run_llm(col1, col2, uploaded_file_client, uploaded_file_interview):

@@ -17,12 +17,14 @@ import io
 import logging
 import streamlit as st
 import os
+from datetime import datetime
+import pytz
 
 from src.components.llm import get_chat_completion
 from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT
 from src.components.sidebar import render_sidebar
 from src.components.researcher import GapAnalysisCrew, StreamToExpander
-# from src.components.researcher import create_researcher, create_research_task, run_research
+from src.components.db import DynamoDBManager
 from src.utils.output_handler import capture_output
 
 
@@ -106,9 +108,14 @@ if st.session_state["analyze_ready"]:
         start_research = st.button("🚀 Start Analysis", use_container_width=True, type="primary")
 
     if start_research:
-
         with st.status("🤖 **Agents at work...**", state="running", expanded=True) as status:
             try:
+                # Initialize DynamoDB manager
+                db_manager = DynamoDBManager()
+                # Get current time in KST
+                kst = pytz.timezone('Asia/Seoul')
+                timestamp = datetime.now(kst).isoformat()
+
                 with st.container(height=500, border=False):
                     sys.stdout = StreamToExpander(st)
                     crew = GapAnalysisCrew(
@@ -120,6 +127,16 @@ if st.session_state["analyze_ready"]:
                         st.session_state["client_analysis"],
                         st.session_state["interview_analysis"],
                     )
+
+                    # Save analysis results to DynamoDB
+                    db_manager.insert_chat_data(
+                        student_id=st.session_state["session_id"],
+                        timestamp=timestamp,
+                        who="agent",
+                        content=str(final_report),
+                        context="gap_analysis"
+                    )
+
                 status.update(label="✅ Analysis completed!", state="complete", expanded=False)
                 st.session_state["is_end"] = True
 

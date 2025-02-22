@@ -17,10 +17,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt /app/
 
 # 4-2. requirements.txt에 명시된 패키지 설치
-RUN pip3 install -r requirements.txt
+RUN pip3 install --upgrade pip
 
 # 4-2. requirements.txt에 명시된 패키지 설치
-RUN pip3 install --upgrade pip
+RUN pip3 install -r requirements.txt
 
 # 4-3. reinstall python-magic
 RUN pip install --upgrade python-magic

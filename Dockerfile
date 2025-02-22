@@ -6,6 +6,7 @@ WORKDIR /app
 
 # 3. 의존성 패키지 설치
 RUN apt-get update && apt-get install -y \
+    apt install libmagic1 \
     build-essential \
     curl \
     software-properties-common \
@@ -20,6 +21,9 @@ RUN pip3 install -r requirements.txt
 
 # 4-2. requirements.txt에 명시된 패키지 설치
 RUN pip3 install --upgrade pip
+
+# 4-3. reinstall python-magic
+RUN pip install --upgrade python-magic
 
 # 5. 실행할 streamlit_app.py를 컨테이너 /app으로 복사
 COPY . /app/

@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
+    pandoc \
     && rm -rf /var/lib/apt/lists/*
 
 # 4-1. 현재 디렉토리의 requirements.txt 파일을 컨테이너의 /app으로 복사

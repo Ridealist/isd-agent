@@ -2,22 +2,30 @@ import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import json
 import uuid
+import streamlit as st
+
 
 # 테이블과 버킷 설정
+st.session_state["AWS_ACCESS_KEY_ID"] = st.secrets["AWS_ACCESS_KEY_ID"]
+st.session_state["AWS_SECRET_ACCESS_KEY"] = st.secrets["AWS_SECRET_ACCESS_KEY"]
+st.session_state["AWS_REGION_NAME"] = st.secrets["AWS_REGION_NAME"]
+st.session_state["DYNAMODB_TABLE_NAME"] = st.secrets["DYNAMODB_TABLE_NAME"]
+st.session_state["S3_BUCKET_NAME"] = st.secrets["S3_BUCKET_NAME"]
+
 
 # DynamoDB와 S3 클라이언트 생성
 try:
     dynamodb = boto3.resource(
         "dynamodb",
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_REGION_NAME
+        aws_access_key_id=st.session_state["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=st.session_state["AWS_SECRET_ACCESS_KEY"],
+        region_name=st.session_state["AWS_REGION_NAME"]
     )
     s3 = boto3.client(
         's3',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_REGION_NAME
+        aws_access_key_id=st.session_state["AWS_ACCESS_KEY_ID"] ,
+        aws_secret_access_key=st.session_state["AWS_SECRET_ACCESS_KEY"],
+        region_name=st.session_state["AWS_REGION_NAME"]
     )
     print("AWS 서비스 연결 성공!")
 except (NoCredentialsError, PartialCredentialsError) as e:
@@ -25,7 +33,7 @@ except (NoCredentialsError, PartialCredentialsError) as e:
     exit()
 
 # 테이블 객체 가져오기
-table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+table = dynamodb.Table(st.session_state["DYNAMODB_TABLE_NAME"])
 
 def upload_to_s3(content, content_type="text/plain"):
     """S3에 컨텐츠를 업로드하고 URL을 반환"""
@@ -35,14 +43,14 @@ def upload_to_s3(content, content_type="text/plain"):
         
         # S3에 업로드
         s3.put_object(
-            Bucket=S3_BUCKET_NAME,
+            Bucket=st.session_state["S3_BUCKET_NAME"],
             Key=file_key,
             Body=content.encode('utf-8'),
             ContentType=content_type
         )
         
         # S3 URL 생성
-        url = f"s3://{S3_BUCKET_NAME}/{file_key}"
+        url = f"s3://{st.session_state["S3_BUCKET_NAME"]}/{file_key}"
         return url
     except Exception as e:
         print("S3 업로드 오류:", e)

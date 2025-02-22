@@ -5,9 +5,9 @@ exa-py
 requests
 unstructured
 unstructured-inference
-# pysqlite3
+pysqlite3
 PyPDF2
 pypandoc[pandoc]
 python-magic
-pysqlite3-binary
+# pysqlite3-binary
 boto3

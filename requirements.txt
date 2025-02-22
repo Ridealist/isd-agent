@@ -10,3 +10,4 @@ PyPDF2
 pypandoc[pandoc]
 python-magic
 pysqlite3-binary
+boto3

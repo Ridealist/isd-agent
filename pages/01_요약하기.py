@@ -39,11 +39,13 @@ logger = logging.getLogger(__name__)
 #--------------------------------#
 # Configure the page
 st.set_page_config(
-    page_title="CrewAI Research Assistant",
-    page_icon="🕵️‍♂️",
+    page_title="ISD Agent",
+    page_icon="🕵️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+st.info("- 요구먼저 [힘과 운동] 소단원에서 배운 내용을 복습해봅시다:) \n - 궁금한게 있으면 왼쪽 사이드바의 🤓**AI 탐구도우미**에게 물어보세요!")
+
 
 # Logo
 st.logo(

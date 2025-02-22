@@ -52,7 +52,7 @@ if "interview_analysis" not in st.session_state:
 #--------------------------------#
 # Configure the page
 st.set_page_config(
-    page_title="CrewAI Research Assistant",
+    page_title="ISD-Agent",
     page_icon="🕵️‍♂️",
     layout="wide",
     initial_sidebar_state="expanded"

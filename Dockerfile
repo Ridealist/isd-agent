@@ -6,7 +6,7 @@ WORKDIR /app
 
 # 3. 의존성 패키지 설치
 RUN apt-get update && apt-get install -y \
-    apt install libmagic1 \
+    libmagic1 \
     build-essential \
     curl \
     software-properties-common \

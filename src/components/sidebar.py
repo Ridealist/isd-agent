@@ -40,60 +40,66 @@ def render_sidebar():
         with st.expander("🤖 Model Selection", expanded=True):
             provider = st.radio(
                 "Select LLM Provider",
-                ["OpenAI", "GROQ", "Ollama"],
+                ["OpenAI"],
+                # ["OpenAI", "GROQ", "Ollama"],
                 help="Choose which Large Language Model provider to use",
                 horizontal=True
             )
             
             if provider == "OpenAI":
-                model_option_summarization = st.selectbox(
-                    "Select Summarization Model",
+                model = st.selectbox(
+                    "Select Model",
                     ["gpt-4o-mini"],
-                    index=0
+                    index=0 
                 )
-                model_option_general = st.selectbox(
-                    "Select General Model",
-                    ["gpt-4o"],
-                    index=0
-                )
-                model_option_manager = st.selectbox(
-                    "Select Manager Model",
-                    ["o1-mini"],
-                    index=0
-                )
+                # model_option_summarization = st.selectbox(
+                #     "Select Summarization Model",
+                #     ["gpt-4o-mini"],
+                #     index=0
+                # )
+                # model_option_general = st.selectbox(
+                #     "Select General Model",
+                #     ["gpt-4o"],
+                #     index=0
+                # )
+                # model_option_manager = st.selectbox(
+                #     "Select Manager Model",
+                #     ["o1-mini"],
+                #     index=0
+                # )
                 # if model_option == "Custom":
                 #     model = st.text_input("Enter your custom OpenAI model:", value="", help="Specify your custom model string")
                 # else:
                 #     model = model_option
-            elif provider == "GROQ":
-                model = st.selectbox(
-                    "Select GROQ Model",
-                    [
-                        "qwen-2.5-32b",
-                        "deepseek-r1-distill-qwen-32b",
-                        "deepseek-r1-distill-llama-70b",
-                        "llama-3.3-70b-versatile",
-                        "llama-3.1-8b-instant",
-                        "Custom"
-                    ],
-                    index=0,
-                    help="Choose from GROQ's available models. All these models support tool use and parallel tool use."
-                )
-                if model == "Custom":
-                    model = st.text_input("Enter your custom GROQ model:", value="", help="Specify your custom model string")
-            elif provider == "Ollama":
-                # Get available Ollama models
-                ollama_models = get_ollama_models()
-                if not ollama_models:
-                    st.warning("⚠️ No Ollama models found. Make sure Ollama is running locally.")
-                    model = None
-                else:
-                    st.warning("⚠️ Note: Most Ollama models have limited function-calling capabilities. This may affect research quality as they might not effectively use web search tools.")
-                    model = st.selectbox(
-                        "Select Ollama Model",
-                        ollama_models,
-                        help="Choose from your locally available Ollama models. For best results, use models known to handle function calling well (e.g., mixtral, openhermes)."
-                    )
+            # elif provider == "GROQ":
+            #     model = st.selectbox(
+            #         "Select GROQ Model",
+            #         [
+            #             "qwen-2.5-32b",
+            #             "deepseek-r1-distill-qwen-32b",
+            #             "deepseek-r1-distill-llama-70b",
+            #             "llama-3.3-70b-versatile",
+            #             "llama-3.1-8b-instant",
+            #             "Custom"
+            #         ],
+            #         index=0,
+            #         help="Choose from GROQ's available models. All these models support tool use and parallel tool use."
+            #     )
+            #     if model == "Custom":
+            #         model = st.text_input("Enter your custom GROQ model:", value="", help="Specify your custom model string")
+            # elif provider == "Ollama":
+            #     # Get available Ollama models
+            #     ollama_models = get_ollama_models()
+            #     if not ollama_models:
+            #         st.warning("⚠️ No Ollama models found. Make sure Ollama is running locally.")
+            #         model = None
+            #     else:
+            #         st.warning("⚠️ Note: Most Ollama models have limited function-calling capabilities. This may affect research quality as they might not effectively use web search tools.")
+            #         model = st.selectbox(
+            #             "Select Ollama Model",
+            #             ollama_models,
+            #             help="Choose from your locally available Ollama models. For best results, use models known to handle function calling well (e.g., mixtral, openhermes)."
+            #         )
         
         # with st.expander("🔑 API Keys", expanded=True):
         #     st.info("API keys are stored temporarily in memory and cleared when you close the browser.")
@@ -127,36 +133,36 @@ def render_sidebar():
             #     if exa_api_key:
             #         os.environ["EXA_API_KEY"] = exa_api_key
 
-        st.write("")
-        with st.expander("ℹ️ About", expanded=False):
-            st.markdown("""
-                This research assistant uses advanced AI models to help you:
-                - Research any topic in depth
-                - Analyze and summarize information
-                - Provide structured reports
+        # st.write("")
+        # with st.expander("ℹ️ About", expanded=False):
+        #     st.markdown("""
+        #         This research assistant uses advanced AI models to help you:
+        #         - Research any topic in depth
+        #         - Analyze and summarize information
+        #         - Provide structured reports
                 
-                Choose your preferred model and enter the required API keys to get started.
+        #         Choose your preferred model and enter the required API keys to get started.
                 
-                **Note on Model Selection:**
-                - OpenAI and GROQ models provide full functionality with web search capabilities
-                - Ollama models run locally but have limited function-calling abilities
-                  and will rely more on their base knowledge
+        #         **Note on Model Selection:**
+        #         - OpenAI and GROQ models provide full functionality with web search capabilities
+        #         - Ollama models run locally but have limited function-calling abilities
+        #           and will rely more on their base knowledge
                 
-                For Ollama users:
-                - Make sure Ollama is running locally with your desired models loaded
-                - Best results with models that handle function calling (e.g., mixtral, openhermes)
-                - Web search functionality is disabled for Ollama models
-            """)
+        #         For Ollama users:
+        #         - Make sure Ollama is running locally with your desired models loaded
+        #         - Best results with models that handle function calling (e.g., mixtral, openhermes)
+        #         - Web search functionality is disabled for Ollama models
+        #     """)
 
-    if provider == "OpenAI":
-        return {
-            "provider": provider,
-            "model_option_summarization": model_option_summarization,
-            "model_option_general": model_option_general,
-            "model_option_manager": model_option_manager
-        }
-    else:
-        return {
-            "provider": provider,
-            "model": model
-        }
+    # if provider == "OpenAI":
+    #     return {
+    #         "provider": provider,
+    #         "model_option_summarization": model_option_summarization,
+    #         "model_option_general": model_option_general,
+    #         "model_option_manager": model_option_manager
+    #     }
+    # else:
+    return {
+        "provider": provider,
+        "model": model
+    }

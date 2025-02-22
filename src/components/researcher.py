@@ -18,13 +18,13 @@ class GapAnalysisCrew:
     ###
     def __init__(self, client_analysis, interview_analysis):
         self.general_llm = LLM(
-                model="openai/gpt-4o", # call model by provider/model_name
+                model="openai/gpt-4o-mini", # call model by provider/model_name
                 temperature=0.7,
                 top_p=0.9,
                 request_timeout=120
             )
         self.manager_llm = LLM(
-                model="openai/o1-mini", # call model by provider/model_name
+                model="openai/gpt-4o-mini", # call model by provider/model_name
                 temperature=0.8,
                 top_p=0.9,
                 frequency_penalty=0.1,

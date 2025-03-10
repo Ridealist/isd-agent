@@ -3,8 +3,8 @@ crewai-tools
 streamlit
 exa-py
 requests
-unstructured
-unstructured-inference
+# unstructured
+# unstructured-inference
 # pysqlite3
 PyPDF2
 pypandoc[pandoc]

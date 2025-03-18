@@ -9,24 +9,20 @@ except (ImportError, KeyError):
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-import tempfile
-import pypandoc
 import magic
 import PyPDF2
 import io
 import logging
-import streamlit as st
 import os
-import uuid  # Add this import at the top with other imports
-from datetime import datetime
 import pytz  # Add this import at the top with other imports
+import uuid  # Add this import at the top with other imports
+import streamlit as st
+
+from datetime import datetime
 
 from src.components.llm import get_chat_completion
 from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT
 from src.components.sidebar import render_sidebar
-from src.components.researcher import GapAnalysisCrew, StreamToExpander
-# from src.components.researcher import create_researcher, create_research_task, run_research
-from src.utils.output_handler import capture_output
 from src.components.db import DynamoDBManager
 
 
@@ -74,7 +70,6 @@ if "interview_analysis" not in st.session_state:
 
 
 ### PDF-File Handler
-
 def process_pdf_file(file) -> str:
     """PDF 파일을 처리하고 텍스트를 추출하는 헬퍼 함수"""
     content_type = magic.from_buffer(file.read(1024), mime=True)
@@ -102,7 +97,9 @@ if st.session_state["logged_in"]:
 
     st.subheader("클라이언트 요구사항 파일")
     uploaded_file_client = st.file_uploader(
-        "클라이언트 요구사항 파일", accept_multiple_files=False
+        label="클라이언트 인터뷰 - **PDF 파일 형식만 가능**",
+        type="pdf",
+        accept_multiple_files=False
     )
     # if uploaded_file_client:
     #     bytes_data = uploaded_file_client.read()
@@ -112,7 +109,9 @@ if st.session_state["logged_in"]:
 
     st.subheader("인터뷰 내용 파일")
     uploaded_file_interview = st.file_uploader(
-        "인터뷰 내용 파일", accept_multiple_files=False
+        label="인터뷰 기록 - **PDF 파일 형식만 가능**",
+        type='pdf',
+        accept_multiple_files=False
     )
     # if uploaded_file_interview:
     #     bytes_data = uploaded_file_interview.read()
@@ -185,26 +184,6 @@ if st.session_state["logged_in"]:
         }
 
 
-    # def run_llm(col1, col2, uploaded_file_client, uploaded_file_interview):
-    #     with st.status("Processing data...", expanded=True) as status:
-    #         results = analyze_files(uploaded_file_client, uploaded_file_interview)
-    #         status.update(
-    #             label="Process complete!", state="complete", expanded=False
-    #         )
-    #         with col1.container():
-    #             st.markdown("### <클라이언트 요구사항 분석>")
-    #             # st.write(client_content)
-    #             # st.session_state["client_analysis"] = client_content
-    #             st.write(results["client_analysis"])
-    #             st.session_state["client_analysis"] = results["client_analysis"]
-    #         with col2.container():
-    #             st.markdown("### <인터뷰 핵심 내용 정리>")
-    #             # st.write(interview_content)
-    #             # st.session_state["interview_analysis"] = interview_content
-    #             st.write(results["interview_analysis"])
-    #             st.session_state["interview_analysis"] = results["interview_analysis"]
-
-
     bt_col1, bt_col2, bt_col3 = st.columns([1, 1, 1])
     with bt_col2:
         button_analyze = st.button(label="📝 Summarize Documents", type="primary", use_container_width=True)
@@ -212,15 +191,23 @@ if st.session_state["logged_in"]:
     if st.session_state["client_analysis"] and st.session_state["interview_analysis"]:
         col1, col2 = st.columns([1, 1])
         with col1.container():
-            st.markdown("### <클라이언트 요구사항 분석>")
-            st.write(st.session_state["client_analysis"])
+            client_analysis_update = st.text_area(
+                label="<클라이언트 요구사항 분석>",
+                value=st.session_state["client_analysis"] ,
+                height=500
+            )
+            st.session_state["client_analysis"]=client_analysis_update
         with col2.container():
-            st.markdown("### <인터뷰 핵심 내용 정리>")
-            st.write(st.session_state["interview_analysis"])
+            # st.markdown("### <인터뷰 핵심 내용 정리>")
+            interview_analysis_update = st.text_area(
+                label="<인터뷰 핵심 내용 정리>",
+                value=st.session_state["interview_analysis"],
+                height=500
+            )
+            st.session_state["interview_analysis"]=interview_analysis_update
     else:
         if button_analyze:
             col1, col2 = st.columns([1, 1])
-
         #     client_content = """
         # 고객의 요구사항 문서를 기반으로 다음과 같이 분석하여 정리했습니다.
 
@@ -271,6 +258,7 @@ if st.session_state["logged_in"]:
         # - **스트레스 관리**: 고객 평가로 인한 스트레스를 줄이기 위해, 긍정적인 평가 시스템 또는 팀워크 중심의 문화 형성이 필요할 수 있습니다.
         # - **계속적인 교육과 업데이트**: 교육 내용은 실제 변화하는 현장 환경이나 기술 발전에 맞추어 지속적으로 업데이트되어야 하는 사항도 강조해야 합니다.
         # """
+            
             if uploaded_file_client and uploaded_file_interview:
                 with st.status("Processing data...", expanded=True) as status:
                     results = analyze_files(uploaded_file_client, uploaded_file_interview)
@@ -280,19 +268,19 @@ if st.session_state["logged_in"]:
                     st.session_state["analyze_ready"] = True
 
                     with col1.container():
-                        st.markdown("### <클라이언트 요구사항 분석>")
-                        # st.write(client_content)
-                        # st.session_state["client_analysis"] = client_content
-                        st.write(results["client_analysis"])
-                        st.session_state["client_analysis"] = results["client_analysis"]
+                        st.text_area(
+                            label="<클라이언트 요구사항 분석>",
+                            value=results["client_analysis"], #client_content,
+                            height=500
+                        )
+                        st.session_state["client_analysis"] = results["client_analysis"] # client_content
                     with col2.container():
-                        st.markdown("### <인터뷰 핵심 내용 정리>")
-                        # st.write(interview_content)
-                        # st.session_state["interview_analysis"] = interview_content
-                        st.write(results["interview_analysis"])
-                        st.session_state["interview_analysis"] = results["interview_analysis"]
-                # run_llm(col1, col2, uploaded_file_client, uploaded_file_interview)
-
+                        st.text_area(
+                            label="<인터뷰 핵심 내용 정리>",
+                            value=results["interview_analysis"], #interview_content,
+                            height=500
+                        )
+                        st.session_state["interview_analysis"] = results["interview_analysis"] # interview_content
 
     # Render sidebar and get selection (provider and model)
     selection = render_sidebar()
@@ -302,41 +290,9 @@ if st.session_state["logged_in"]:
         if not os.environ.get("OPENAI_API_KEY"):
             st.warning("⚠️ Please enter your OpenAI API key in the sidebar to get started")
             st.stop()
-    elif selection["provider"] == "GROQ":
-        if not os.environ.get("GROQ_API_KEY"):
-            st.warning("⚠️ Please enter your GROQ API key in the sidebar to get started")
-            st.stop()
-
-    # Check EXA key for non-Ollama providers
-    if selection["provider"] != "Ollama":
-        if not os.environ.get("EXA_API_KEY"):
-            st.warning("⚠️ Please enter your EXA API key in the sidebar to get started")
-            st.stop()
-
-    # Add Ollama check
-    if selection["provider"] == "Ollama" and not selection["model"]:
-        st.warning("⚠️ No Ollama models found. Please make sure Ollama is running and you have models loaded.")
-        st.stop()
-
-    # Create two columns for the input section
-    # input_col1, input_col2, input_col3 = st.columns([1, 3, 1])
-    # with input_col2:
-    #     task_description = st.text_area(
-    #         "What would you like to research?",
-    #         value="Research the latest AI Agent news in February 2025 and summarize each.",
-    #         height=68
-    #     )
-
 
     # # 다음 단계로 버튼
     mov_col1, mov_col2, mov_col3 = st.columns([1, 1, 1])
-    # with col1:
-    #     st.button(
-    #             label="재실행",
-    #             icon="🔄",
-    #             help="다시 AI 답변 받기",
-    #             on_click=""
-    #         )
     with mov_col3:
         if st.session_state["analyze_ready"]:
             if st.button(

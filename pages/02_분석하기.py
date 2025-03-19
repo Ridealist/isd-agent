@@ -250,7 +250,8 @@ if st.session_state["logged_in"]:
                                 sys.stdout = StreamToExpander(st)
                                 crew = GapAnalysisCrew(
                                     client_analysis=st.session_state["client_analysis"],
-                                    interview_analysis=st.session_state["interview_analysis"]
+                                    interview_analysis=st.session_state["interview_analysis"],
+                                    user_input=user_input
                                 )
                                 
                                 # 사용자 입력을 추가 파라미터로 전달

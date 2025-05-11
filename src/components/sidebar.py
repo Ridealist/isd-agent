@@ -59,12 +59,12 @@ def render_sidebar():
                 # )
                 model_option_general = st.selectbox(
                     "Select General Model",
-                    ["gpt-4o-mini"],
+                    ["gpt-4.1-mini"],
                     index=0
                 )
                 model_option_manager = st.selectbox(
                     "Select Manager Model",
-                    ["o1-mini"],
+                    ["o4-mini"],
                     index=0
                 )
                 # if model_option == "Custom":

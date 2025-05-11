@@ -1,8 +1,16 @@
 from textwrap import dedent
 from crewai import Agent, Task, Crew, Process, LLM
 
+from .prompts import (
+    PERFORMANCE_ANALYSIS_PROMPT,
+    ACHIEVEMENT_ANALYSIS_PROMPT,
+    ENVIRONMENT_ANALYSIS_PROMPT,
+    SOLUTION_ANALYSIS_PROMPT
+)
+
 import re
 import streamlit as st
+import logging
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -11,25 +19,32 @@ class GapAnalysisCrew:
     ###
     ## LLM Settings
     ###
-    def __init__(self, client_analysis, interview_analysis, user_input=None):
+    def __init__(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None,
+                 performance_prompt=None, achievement_prompt=None, environment_prompt=None,
+                 solution_prompt=None):
         self.general_llm = LLM(
-                model="openai/gpt-4o-mini", # call model by provider/model_name
+                model="openai/gpt-4.1-mini-2025-04-14",
                 temperature=0.7,
                 top_p=0.9,
-                request_timeout=120
+                request_timeout=120,
+                max_tokens=2048
             )
         self.manager_llm = LLM(
-                model="openai/o1-mini", # call model by provider/model_name
+                model="openai/gpt-4.1-2025-04-14",
                 temperature=0.8,
                 top_p=0.9,
                 frequency_penalty=0.1,
                 presence_penalty=0.1,
-                stop=["END"],
                 seed=42
             )
         self.client_analysis = client_analysis
         self.interview_analysis = interview_analysis
+        self.other_files_analysis = other_files_analysis
         self.user_input = user_input
+        self.performance_prompt = performance_prompt or PERFORMANCE_ANALYSIS_PROMPT["user"]
+        self.achievement_prompt = achievement_prompt or ACHIEVEMENT_ANALYSIS_PROMPT["user"]
+        self.environment_prompt = environment_prompt or ENVIRONMENT_ANALYSIS_PROMPT["user"]
+        self.solution_prompt = solution_prompt or SOLUTION_ANALYSIS_PROMPT["user"]
 
     ###
     ## Agents Settings
@@ -155,7 +170,7 @@ class GapAnalysisCrew:
             - **교육적 해결안**: 추가 교육, 온보딩 프로그램 개선, 코칭 및 멘토링 강화.
             - **비교육적 해결안**: 근무 환경 개선, 인센티브 제공, 업무 절차 간소화, 조직 문화 변화 유도.
         4. **해결방안의 우선순위 설정**: 프로젝트 매니저와 협력하여, 가용 자원 및 실행 가능성을 고려한 최적의 해결 전략 선정.
-        5. **실행 로드맵 제시**: 해결방안을 실현 가능한 단계별 계획으로 정리하여, 조직 내 적용이 원활하게 이루어지도록 지원.
+        5. **실행 로드맵 제시**: 해결방안을 실행 가능한 단계별 계획으로 정리하여, 조직 내 적용이 원활하게 이루어지도록 지원.
 
         적용 가능 사례:
         - 직원 교육 개선을 위한 체계적인 원인 분석 및 교육 설계.
@@ -169,38 +184,16 @@ class GapAnalysisCrew:
     ###
     ## Tasks Settings
     ###
-    # def identify_task(self, agent, origin, cities, interests, range):
-    #     return Task(description=dedent(f"""
-    #         Analyze and select the best city for the trip based
-    #         on specific criteria such as weather patterns, seasonal
-    #         events, and travel costs. This task involves comparing
-    #         multiple cities, considering factors like current weather
-    #         conditions, upcoming cultural or seasonal events, and
-    #         overall travel expenses.
-
-    #         Your final answer must be a detailed
-    #         report on the chosen city, and everything you found out
-    #         about it, including the actual flight costs, weather
-    #         forecast and attractions.
-    #         {self.__tip_section()}
-
-    #         Traveling from: {origin}
-    #         City Options: {cities}
-    #         Trip Date: {range}
-    #         Traveler Interests: {interests}
-    #       """),
-    #         expected_output="A detailed report on the chosen city with flight costs, weather forecast, and attractions.",
-    #         agent=agent)
-
-    def analyze_performance(self, client_analysis, interview_analysis, user_input=None) -> Task:
+    def analyze_performance(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
         return Task(description=dedent(f"""
-            "클라이언트 요구사항"과 "인터뷰 분석 결과"를 비교하여 수행 관련 차이를 분석하시오.
-            - 프로젝트 진행 방식의 차이
-            - 실행 과정상의 차이
-            - 방법론적 차이
-
-            > 클라이언트 요구사항: {client_analysis}
-            > 인터뷰 분석 결과: {interview_analysis}
+            {PERFORMANCE_ANALYSIS_PROMPT["system"].format(
+                text=f"""
+                > 클라이언트 요구사항: {client_analysis}
+                > 인터뷰 분석 결과: {interview_analysis}
+                > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
+                """,
+                analysis_guide=self.performance_prompt
+            )}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -208,15 +201,16 @@ class GapAnalysisCrew:
             expected_output="수행 관련 차이점 분석 보고서"
         )
 
-    def analyze_achievement(self, client_analysis, interview_analysis, user_input=None) -> Task:
+    def analyze_achievement(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
         return Task(description=dedent(f"""
-            "클라이언트 요구사항"과 "인터뷰 분석 결과"를 비교하여 성과 관련 차이를 분석하시오.
-            - 목표 대비 실제 성과
-            - 정량적/정성적 차이
-            - KPI 달성도 차이
-
-            > 클라이언트 요구사항: {client_analysis}
-            > 인터뷰 분석 결과: {interview_analysis}
+            {ACHIEVEMENT_ANALYSIS_PROMPT["system"].format(
+                text=f"""
+                > 클라이언트 요구사항: {client_analysis}
+                > 인터뷰 분석 결과: {interview_analysis}
+                > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
+                """,
+                analysis_guide=self.achievement_prompt
+            )}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -224,15 +218,16 @@ class GapAnalysisCrew:
             expected_output="성과 관련 차이점 분석 보고서"
         )
 
-    def analyze_environment(self, client_analysis, interview_analysis, user_input=None) -> Task:
+    def analyze_environment(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
         return Task(description=dedent(f"""
-            "클라이언트 요구사항"과 "인터뷰 분석 결과"를 비교하여 환경 관련 차이를 분석하시오.
-            - 내부 환경 요인 차이
-            - 외부 환경 요인 차이
-            - 환경적 제약사항 차이
-
-            > 클라이언트 요구사항: {client_analysis}
-            > 인터뷰 분석 결과: {interview_analysis}
+            {ENVIRONMENT_ANALYSIS_PROMPT["system"].format(
+                text=f"""
+                > 클라이언트 요구사항: {client_analysis}
+                > 인터뷰 분석 결과: {interview_analysis}
+                > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
+                """,
+                analysis_guide=self.environment_prompt
+            )}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -240,15 +235,16 @@ class GapAnalysisCrew:
             expected_output="환경 관련 차이점 분석 보고서"
         )
 
-    def analyze_solution(self, client_analysis, interview_analysis, user_input=None) -> Task:
+    def analyze_solution(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
         return Task(description=dedent(f"""
-            앞선 분석 결과들을 검토하여 원인과 해결방안을 도출하시오.
-            - 차이 발생의 근본 원인
-            - 실현 가능한 해결방안
-            - 우선순위 및 실행 계획
-
-            > 클라이언트 요구사항: {client_analysis}
-            > 인터뷰 분석 결과: {interview_analysis}
+            {SOLUTION_ANALYSIS_PROMPT["system"].format(
+                text=f"""
+                > 클라이언트 요구사항: {client_analysis}
+                > 인터뷰 분석 결과: {interview_analysis}
+                > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
+                """,
+                analysis_guide=self.solution_prompt
+            )}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -256,68 +252,65 @@ class GapAnalysisCrew:
             expected_output="원인 및 해결방안 보고서"
         )
 
-
-    def compile_final_report(self, client_analysis, interview_analysis, user_input=None) -> Task:
+    def compile_final_report(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
         return Task(description=dedent(f"""
             다음 사항을 종합적으로 고려하여 각 수행 종류별 분석 보고서를 작성하시오.
             - 클라이언트 요구사항
             - 인터뷰 분석 결과
+            - 기타 파일 분석 결과
             - (있을 경우) 사용자 추가 수정 요청사항
 
-                                       
             참고 맥락:
             > 클라이언트 맥락: {client_analysis}
             > 인터뷰 맥락: {interview_analysis}
+            > 기타 파일 맥락: {other_files_analysis if other_files_analysis else "없음"}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
 
-        위 맥락을 기반으로 수행 문제를 사실적으로 기술하고, 원인 분석 및 해결방안을 구분하여 정리하시오.
-        **수행 문제 기술은 분석과 해석 없이 '사실적인 문제 상황'을 기술해야 합니다.**
-        분석과 해결안은 수행 문제를 기반으로 실행 가능성이 높은 방안을 제시하시오.
+            위 맥락을 기반으로 수행 문제를 사실적으로 기술하고, 원인 분석 및 해결방안을 구분하여 정리하시오.
+            **수행 문제 기술은 분석과 해석 없이 '사실적인 문제 상황'을 기술해야 합니다.**
+            분석과 해결안은 수행 문제를 기반으로 실행 가능성이 높은 방안을 제시하시오.
 
-        보고서 구조:
+            보고서 구조:
 
-        <수행 문제 분석 보고서>
+            <수행 문제 분석 보고서>
 
-        1. 수행 문제(1) **(수행 문제 상황에 대한 키워드 중심 사실적 진술)**
-            * 1.1. 수행 문제 상황
-                - {"수행 문제 상황 (1)에 대한 간결한 사실적 진술 (예: '직원들이 고객 응대 매뉴얼을 일관되게 따르지 않음.')"}
-            * 1.2. 원인 분석  
-                - 수행 문제를 유발하는 근본 원인 (교육적 요인, 환경적 요인 등)
-                - 관련 데이터 및 분석 결과 요약
-            * 1.3. 교육적 해결안  
-                - 추가 교육, 실습, 온보딩 개선 등의 해결방안
-                - 실행 가능성과 예상 효과 고려
-            * 1.4. 교육외적 해결안 (필요한 경우만 서술)  
-                - 환경 개선, 인센티브 제공, 조직 프로세스 조정 등
-                - 실현 가능성과 조직 내 적용 방안 포함
+            1. 수행 문제(1) **(수행 문제 상황에 대한 키워드 중심 사실적 진술)**
+                * 1.1. 수행 문제 상황
+                    - {"수행 문제 상황 (1)에 대한 간결한 사실적 진술 (예: '직원들이 고객 응대 매뉴얼을 일관되게 따르지 않음.')"}
+                * 1.2. 원인 분석  
+                    - 수행 문제를 유발하는 근본 원인 (교육적 요인, 환경적 요인 등)
+                    - 관련 데이터 및 분석 결과 요약
+                * 1.3. 교육적 해결안  
+                    - 추가 교육, 실습, 온보딩 개선 등의 해결방안
+                    - 실행 가능성과 예상 효과 고려
+                * 1.4. 교육외적 해결안 (필요한 경우만 서술)  
+                    - 환경 개선, 인센티브 제공, 조직 프로세스 조정 등
+                    - 실현 가능성과 조직 내 적용 방안 포함
 
-        2. 수행 문제(2) **(수행 문제 상황에 대한 키워드 중심 사실적 진술)**
-            * 2.1. 수행 문제 상황
-                - {"수행 문제 상황 (2)에 대한 간결한 사실적 진술"}
-            * 2.2. 원인 분석  
-                - 수행 문제를 유발하는 근본 원인
-                - 관련 데이터 및 분석 결과 요약
-            * 2.3. 교육적 해결안  
-                - 실행 가능한 교육 개선 방안
-            * 2.4. 교육외적 해결안 (필요한 경우만 서술)  
+            2. 수행 문제(2) **(수행 문제 상황에 대한 키워드 중심 사실적 진술)**
+                * 2.1. 수행 문제 상황
+                    - {"수행 문제 상황 (2)에 대한 간결한 사실적 진술"}
+                * 2.2. 원인 분석  
+                    - 수행 문제를 유발하는 근본 원인
+                    - 관련 데이터 및 분석 결과 요약
+                * 2.3. 교육적 해결안  
+                    - 실행 가능한 교육 개선 방안
+                * 2.4. 교육외적 해결안 (필요한 경우만 서술)  
 
-        3. 수행 문제(3) **(수행 문제 상황에 대한 키워드 중심 사실적 진술)**
-            * 3.1. 수행 문제 상황
-                - {"수행 문제 상황 (3)에 대한 간결한 사실적 진술"}
-            * 3.2. 원인 분석  
-                - 수행 문제를 유발하는 근본 원인
-            * 3.3. 교육적 해결안  
-            * 3.4. 교육외적 해결안 (필요한 경우만 서술)  
+            3. 수행 문제(3) **(수행 문제 상황에 대한 키워드 중심 사실적 진술)**
+                * 3.1. 수행 문제 상황
+                    - {"수행 문제 상황 (3)에 대한 간결한 사실적 진술"}
+                * 3.2. 원인 분석  
+                    - 수행 문제를 유발하는 근본 원인
+                * 3.3. 교육적 해결안  
+                * 3.4. 교육외적 해결안 (필요한 경우만 서술)  
 
-        (수행 문제는 **우선순위와 중요도를 기준으로 최대 3개까지만 선정하여 서술**)
-            """),
+            (수행 문제는 **우선순위와 중요도를 기준으로 최대 3개까지만 선정하여 서술**)
+        """),
             agent=self.pm(),
-            expected_output="맥락 기반 수행 종류별 원인 분석 및 해결방안 종합 보고서",
-            #TODO human-in-the-loop
-            # human_input=True
+            expected_output="맥락 기반 수행 종류별 원인 분석 및 해결방안 종합 보고서"
         )
-
 
     def crew(self) -> Crew:
         return Crew(
@@ -329,11 +322,11 @@ class GapAnalysisCrew:
                 self.solution_researcher()
             ],
             tasks=[
-                self.analyze_performance(self.client_analysis, self.interview_analysis),
-                self.analyze_achievement(self.client_analysis, self.interview_analysis),
-                self.analyze_environment(self.client_analysis, self.interview_analysis),
-                self.analyze_solution(self.client_analysis, self.interview_analysis),
-                self.compile_final_report(self.client_analysis, self.interview_analysis)
+                self.analyze_performance(self.client_analysis, self.interview_analysis, self.other_files_analysis),
+                self.analyze_achievement(self.client_analysis, self.interview_analysis, self.other_files_analysis),
+                self.analyze_environment(self.client_analysis, self.interview_analysis, self.other_files_analysis),
+                self.analyze_solution(self.client_analysis, self.interview_analysis, self.other_files_analysis),
+                self.compile_final_report(self.client_analysis, self.interview_analysis, self.other_files_analysis)
             ],
             process=Process.sequential,
             verbose=True,
@@ -341,40 +334,22 @@ class GapAnalysisCrew:
             manager_agent=self.pm()
         )
 
-    def analyze(self, client_analysis: str, interview_analysis: str, user_input: str = None): # , message_queue):
+    def analyze(self, client_analysis: str, interview_analysis: str, other_files_analysis: str = None, user_input: str = None):
         try:
             inputs = {
                 "client_analysis": client_analysis,
                 "interview_analysis": interview_analysis,
+                "other_files_analysis": other_files_analysis,
                 "user_input": user_input
             }
             
             crew_instance = self.crew()
-            
-            # # 각 에이전트의 작업 진행상황을 메시지로 전달
-            # for agent in crew_instance.agents:
-            #     await message_queue.put({
-            #         "agent_name": agent.role,
-            #         "message": f"{agent.role}이(가) 분석을 시작합니다."
-            #     })
-            
             result = crew_instance.kickoff(inputs=inputs)
             result_str = str(result)
-            
-            # # 최종 결과 전달
-            # await message_queue.put({
-            #     "agent_name": "PM",
-            #     "message": "분석이 완료되었습니다.",
-            #     "report": result_str
-            # })
             
             return result_str
             
         except Exception as e:
-            # await message_queue.put({
-            #     "agent_name": "System",
-            #     "message": f"분석 중 오류가 발생했습니다: {str(e)}"
-            # })
             raise Exception
 
 
@@ -411,6 +386,12 @@ class StreamToExpander:
         # 정규 표현식을 사용하여 특정 패턴을 제거
         pattern = r"[\s]*참고 맥락:.*?위 맥락을 기반으로 수행 문제를 사실적으로 기술하고, 원인 분석 및 해결방안을 구분하여 정리하시오.\n"
         cleaned_data = re.sub(pattern, "", cleaned_data, flags=re.DOTALL)
+
+        cleaned_data = re.sub(
+            r'(?s).*다음 정보를 바탕으로\s*([^:]+):.*',   # 캡처 구간 정의(동일)
+            lambda m: m.group(1).strip(),                # ← 내부 공백 유지, 양끝만 제거
+            cleaned_data
+        )
 
         current_agent = None
 

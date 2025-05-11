@@ -21,7 +21,7 @@ import streamlit as st
 from datetime import datetime
 
 from src.components.llm import get_chat_completion
-from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT
+from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT, RELATED_DOCUMENTS_PROMPT
 from src.components.sidebar import render_sidebar
 from src.components.db import DynamoDBManager
 
@@ -68,6 +68,8 @@ if "client_analysis" not in st.session_state:
 if "interview_analysis" not in st.session_state:
     st.session_state["interview_analysis"] = None
 
+if "other_files_analysis" not in st.session_state:
+    st.session_state["other_files_analysis"] = None
 
 ### PDF-File Handler
 def process_pdf_file(file) -> str:
@@ -95,6 +97,38 @@ if st.session_state["logged_in"]:
         st.title("🔍 :red[ISD Agent] 수행 문제 분석 도우미", anchor=False)
 
 
+    # Add other files prompt to the prompt editing section
+    with st.expander("📝 프롬프트 수정", expanded=False):
+        st.markdown("### 프롬프트 수정")
+        st.markdown("분석에 사용될 프롬프트를 수정할 수 있습니다.")
+        
+        # Initialize prompt states if not exists
+        if "client_prompt" not in st.session_state:
+            st.session_state["client_prompt"] = CLIENT_REQUIREMENTS_PROMPT["user"]
+        if "interview_prompt" not in st.session_state:
+            st.session_state["interview_prompt"] = INTERVIEW_PROMPT["user"]
+        if "other_files_prompt" not in st.session_state:
+            st.session_state["other_files_prompt"] = RELATED_DOCUMENTS_PROMPT["user"]
+
+        # Add text areas for prompt editing
+        st.session_state["client_prompt"] = st.text_area(
+            "클라이언트 요구사항 분석 프롬프트",
+            value=st.session_state["client_prompt"],
+            height=200
+        )
+        
+        st.session_state["interview_prompt"] = st.text_area(
+            "인터뷰 분석 프롬프트",
+            value=st.session_state["interview_prompt"],
+            height=200
+        )
+
+        st.session_state["other_files_prompt"] = st.text_area(
+            "기타 파일 분석 프롬프트",
+            value=st.session_state["other_files_prompt"],
+            height=200
+        )
+
     st.subheader("클라이언트 요구사항 파일")
     uploaded_file_client = st.file_uploader(
         label="클라이언트 인터뷰 - **PDF 파일 형식만 가능**",
@@ -119,8 +153,17 @@ if st.session_state["logged_in"]:
     #     # st.write("file content:", full_text)
     #     # st.write(bytes_data)
 
+    # Add other files section
+    st.subheader("기타 분석 파일")
+    uploaded_files_other = st.file_uploader(
+        label="기타 분석 파일 - **PDF 파일 형식만 가능**",
+        type='pdf',
+        accept_multiple_files=True,
+        help="여러 개의 파일을 업로드할 수 있습니다."
+    )
 
-    def analyze_files(client_file, interview_file):
+
+    def analyze_files(client_file=None, interview_file=None, other_files=None):
         logger.info("Received analysis request")
         
         # DynamoDB 매니저 초기화
@@ -129,158 +172,160 @@ if st.session_state["logged_in"]:
         kst = pytz.timezone('Asia/Seoul')
         timestamp = datetime.now(kst).isoformat()
         
+        results = {
+            "status": "success",
+            "client_analysis": None,
+            "interview_analysis": None,
+            "other_files_analysis": None
+        }
+        
         # 클라이언트 파일 처리
-        client_content = process_pdf_file(client_file)
-        client_prompt = CLIENT_REQUIREMENTS_PROMPT.format(text=client_content)
-        
-        # 사용자 입력 저장
-        db_manager.insert_chat_data(
-            student_id=st.session_state["session_id"],
-            timestamp=timestamp,
-            who="user",
-            content=client_content,
-            context="requirements_analysis"
-        )
-        
-        client_analysis = get_chat_completion(client_prompt)
-        
-        # AI 응답 저장
-        db_manager.insert_chat_data(
-            student_id=st.session_state["session_id"],
-            timestamp=datetime.now(kst).isoformat(),  # Use KST
-            who="agent",
-            content=client_analysis,
-            context="requirements_analysis"
-        )
+        if client_file:
+            client_content = process_pdf_file(client_file)
+            # Combine editable prompt with system template
+            client_prompt = CLIENT_REQUIREMENTS_PROMPT["system"].format(
+                text=client_content,
+                analysis_guide=st.session_state["client_prompt"]
+            )
+            
+            # 사용자 입력 저장
+            db_manager.insert_chat_data(
+                student_id=st.session_state["session_id"],
+                timestamp=timestamp,
+                who="user",
+                content=client_content,
+                context="requirements_analysis"
+            )
+            
+            client_analysis = get_chat_completion(client_prompt)
+            results["client_analysis"] = client_analysis
+            
+            # AI 응답 저장
+            db_manager.insert_chat_data(
+                student_id=st.session_state["session_id"],
+                timestamp=datetime.now(kst).isoformat(),
+                who="agent",
+                content=client_analysis,
+                context="requirements_analysis"
+            )
         
         # 인터뷰 파일 처리
-        interview_content = process_pdf_file(interview_file)
-        interview_prompt = INTERVIEW_PROMPT.format(text=interview_content)
+        if interview_file:
+            interview_content = process_pdf_file(interview_file)
+            # Combine editable prompt with system template
+            interview_prompt = INTERVIEW_PROMPT["system"].format(
+                text=interview_content,
+                analysis_guide=st.session_state["interview_prompt"]
+            )
+            
+            # 사용자 입력 저장
+            db_manager.insert_chat_data(
+                student_id=st.session_state["session_id"],
+                timestamp=datetime.now(kst).isoformat(),
+                who="user",
+                content=interview_content,
+                context="interview_analysis"
+            )
+            
+            interview_analysis = get_chat_completion(interview_prompt)
+            results["interview_analysis"] = interview_analysis
+            
+            # AI 응답 저장
+            db_manager.insert_chat_data(
+                student_id=st.session_state["session_id"],
+                timestamp=datetime.now(kst).isoformat(),
+                who="agent",
+                content=interview_analysis,
+                context="interview_analysis"
+            )
         
-        # 사용자 입력 저장
-        db_manager.insert_chat_data(
-            student_id=st.session_state["session_id"],
-            timestamp=datetime.now(kst).isoformat(),  # Use KST
-            who="user",
-            content=interview_content,
-            context="interview_analysis"
-        )
+        # 기타 파일 처리 - 모든 파일 내용을 하나로 합침
+        if other_files:
+            combined_content = ""
+            for file in other_files:
+                file_content = process_pdf_file(file)
+                combined_content += f"\n\n=== {file.name} ===\n{file_content}"
+            
+            # Combine editable prompt with system template
+            other_prompt = RELATED_DOCUMENTS_PROMPT["system"].format(
+                text=combined_content,
+                analysis_guide=st.session_state["other_files_prompt"]
+            )
+            
+            # 사용자 입력 저장
+            db_manager.insert_chat_data(
+                student_id=st.session_state["session_id"],
+                timestamp=datetime.now(kst).isoformat(),
+                who="user",
+                content=combined_content,
+                context="other_files_analysis"
+            )
+            
+            combined_analysis = get_chat_completion(other_prompt)
+            results["other_files_analysis"] = combined_analysis
+            
+            # AI 응답 저장
+            db_manager.insert_chat_data(
+                student_id=st.session_state["session_id"],
+                timestamp=datetime.now(kst).isoformat(),
+                who="agent",
+                content=combined_analysis,
+                context="other_files_analysis"
+            )
         
-        interview_analysis = get_chat_completion(interview_prompt)
-        
-        # AI 응답 저장
-        db_manager.insert_chat_data(
-            student_id=st.session_state["session_id"],
-            timestamp=datetime.now(kst).isoformat(),  # Use KST
-            who="agent",
-            content=interview_analysis,
-            context="interview_analysis"
-        )
-        
-        return {
-            "status": "success",
-            "client_analysis": client_analysis,
-            "interview_analysis": interview_analysis
-        }
+        return results
 
 
     bt_col1, bt_col2, bt_col3 = st.columns([1, 1, 1])
     with bt_col2:
         button_analyze = st.button(label="📝 Summarize Documents", type="primary", use_container_width=True)
 
-    if st.session_state["client_analysis"] and st.session_state["interview_analysis"]:
+    if button_analyze:
+        # Check if at least one file is uploaded
+        if uploaded_file_client or uploaded_file_interview or (uploaded_files_other and len(uploaded_files_other) > 0):
+            with st.status("Processing data...", expanded=True) as status:
+                results = analyze_files(uploaded_file_client, uploaded_file_interview, uploaded_files_other)
+                status.update(
+                    label="Process complete!", state="complete", expanded=False
+                )
+                st.session_state["analyze_ready"] = True
+                st.session_state["client_analysis"] = results["client_analysis"]
+                st.session_state["interview_analysis"] = results["interview_analysis"]
+                st.session_state["other_files_analysis"] = results["other_files_analysis"]
+        else:
+            st.warning("⚠️ 분석을 위해 최소한 하나의 파일을 업로드해주세요.")
+
+    # Display existing analysis results
+    elif st.session_state["client_analysis"] or st.session_state["interview_analysis"] or st.session_state["other_files_analysis"]:
         col1, col2 = st.columns([1, 1])
-        with col1.container():
-            client_analysis_update = st.text_area(
-                label="<클라이언트 요구사항 분석>",
-                value=st.session_state["client_analysis"] ,
-                height=500
+        # Display client analysis if exists
+        if st.session_state["client_analysis"]:
+            with col1.container():
+                client_analysis_update = st.text_area(
+                    label="<클라이언트 요구사항 분석>",
+                    value=st.session_state["client_analysis"],
+                    height=500
+                )
+                st.session_state["client_analysis"] = client_analysis_update
+    
+        if st.session_state["interview_analysis"]:
+            with col2.container():
+                interview_analysis_update = st.text_area(
+                    label="<인터뷰 핵심 내용 정리>",
+                    value=st.session_state["interview_analysis"],
+                    height=500
+                )
+                st.session_state["interview_analysis"] = interview_analysis_update
+
+        # Display other files analysis if exists
+        if st.session_state["other_files_analysis"]:
+            st.subheader("기타 파일 분석 결과")
+            other_files_analysis_update = st.text_area(
+                label="<기타 파일 통합 분석>",
+                value=st.session_state["other_files_analysis"],
+                height=300
             )
-            st.session_state["client_analysis"]=client_analysis_update
-        with col2.container():
-            # st.markdown("### <인터뷰 핵심 내용 정리>")
-            interview_analysis_update = st.text_area(
-                label="<인터뷰 핵심 내용 정리>",
-                value=st.session_state["interview_analysis"],
-                height=500
-            )
-            st.session_state["interview_analysis"]=interview_analysis_update
-    else:
-        if button_analyze:
-            col1, col2 = st.columns([1, 1])
-        #     client_content = """
-        # 고객의 요구사항 문서를 기반으로 다음과 같이 분석하여 정리했습니다.
-
-        # 1. **프로젝트의 핵심 목표**
-        # - 서비스센터 직원들의 서비스 역량을 개선하기 위한 교육 프로그램 개발.
-        # - DE CS 마인드를 특히 강화하여 고객 만족도를 높이는 것을 목표로 함.
-
-        # 2. **주요 요구사항 목록**
-        # - 서비스센터 직원들이 DE CS 마인드를 이해하고 적용할 수 있는 교육 내용 포함.
-        # - 고객 만족도 지수를 높이기 위한 실질적인 서비스 기술 교육 제공.
-        # - 서비스 관련 교육의 효과성 평가를 위한 기준 마련.
-        # - 교육 프로그램은 모든 서비스센터 직원이 참여할 수 있도록 유연한 형태로 설계.
-
-        # 3. **제약사항이나 특별 고려사항**
-        # - 서비스센터 직원들은 개별 사업자 소속이므로, 교육 프로그램이 각 센터의 운영에 실질적으로 적용될 수 있어야 함.
-        # - 현재 제공된 교육의 내용과 형식이 직원들에게 유용한지 검토 후 개선 방안 제시가 필요.
-        # - 경쟁사와의 비교 분석을 통해 차별화된 교육 프로그램 개발이 요구됨.
-        # - 직원의 서비스 향상을 위해 실시간 피드백과 평가 프로그램 필요.
-
-        # 4. **기대하는 결과물**
-        # - 개발된 교육 프로그램과 매뉴얼: DE CS 마인드 관련 자료와 서비스 기술 훈련 모듈 포함.
-        # - 교육 효과 평가 리포트: 교육 후 고객 만족도 지수 변화 및 직원 피드백 결과 포함.
-        # - 고객 만족도 지수 개선 목표 수치 도출 및 이를 달성하기 위한 실행 계획. 
-
-        # 이와 같은 분석을 통해 요구사항을 명확히 파악하고, 교육 프로그램 개발 방향성을 설정할 수 있습니다.
-        # """
-
-        #     interview_content = """
-        # ### 1. 인터뷰 대상자의 주요 관심사
-        # - **고객 평가**: 고객 평가가 성과급과 연결되어 있어, 엔지니어들이 평가에 대한 높은 스트레스를 느끼고 있습니다. 고객의 성향 파악과 고객 응대 능력이 중요함을 강조합니다.
-        # - **기술과 소통의 균형**: 기술적인 능력 외에 고객 응대나 소통 능력이 더 중요하다는 인식이 있습니다. 특히 기술을 잘 알고도 고객 질문에 당황하는 사례를 지적합니다.
-        # - **업무의 편차**: 담당하는 제품에 따라 업무량이 달라지며, 이는 엔지니어의 수입에 직접적인 영향을 미친다는 점도 주요 관심사입니다.
-
-        # ### 2. 파악된 문제점이나 니즈
-        # - **고객 응대 능력 부족**: 엔지니어들이 고객 응대 시 필요한 기술이나 소통 능력이 부족한 경우가 많아, 낮은 평가를 받는 경우가 발생합니다.
-        # - **교육의 비효율성**: 기존 고객 응대 교육이 현장 상황을 반영하지 못하고, 엔지니어들이 형식적으로 교육을 이행하여 실제 상황에 적용하기 어렵습니다.
-        # - **신입 교육 부족**: 신입 엔지니어에 대한 현장교육이 미비하여, 실무에 필요한 기술 습득과 고객 응대 능력이 제대로 배양되지 않고 있습니다.
-        # - **단발성 교육의 한계**: 현재 진행되는 교육이 일회성으로, 지속적이고 맞춤형 교육이 부족합니다.
-
-        # ### 3. 제안된 해결방안이나 아이디어
-        # - **맞춤형 교육 필요성**: 개인별 문제점(예: 고객 응대, 기술 문제 등)을 파악하고 코칭하여 맞춤형 교육을 시행해야 한다는 아이디어가 제안되었습니다.
-        # - **현장 경험 반영**: 실제 현장의 어려움과 경험자들의 의견을 반영하여 교육 프로그램을 개선해야 한다는 필요성이 있습니다.
-        # - **지속적인 평가 및 피드백**: 교육이 끝난 후에도 데이터를 기반으로 지속적으로 엔지니어의 성과를 관리하고 평가해야 하며, 정기적으로 코칭을 해야 한다는 제안이 있습니다.
-        # - **롤플레잉과 상황별 훈련 강화**: 롤플레잉을 통한 고객 응대 교육을 보다 효과적으로 수행하고, 실제 고객 상황에 맞춘 훈련 방식으로 개선해야 한다고 언급되었습니다.
-
-        # ### 4. 추가 고려사항이나 피드백
-        # - **업무과량**: 엔지니어들이 만나는 고객 수가 많고, 한 번에 여러 기계를 수리해야 하기에 일정한 업무 배분이 어려워 효율성이 떨어지는 측면도 고려해야 합니다. 이에 대한 개선 방안도 필요합니다.
-        # - **스트레스 관리**: 고객 평가로 인한 스트레스를 줄이기 위해, 긍정적인 평가 시스템 또는 팀워크 중심의 문화 형성이 필요할 수 있습니다.
-        # - **계속적인 교육과 업데이트**: 교육 내용은 실제 변화하는 현장 환경이나 기술 발전에 맞추어 지속적으로 업데이트되어야 하는 사항도 강조해야 합니다.
-        # """
-            
-            if uploaded_file_client and uploaded_file_interview:
-                with st.status("Processing data...", expanded=True) as status:
-                    results = analyze_files(uploaded_file_client, uploaded_file_interview)
-                    status.update(
-                        label="Process complete!", state="complete", expanded=False
-                    )
-                    st.session_state["analyze_ready"] = True
-
-                    with col1.container():
-                        st.text_area(
-                            label="<클라이언트 요구사항 분석>",
-                            value=results["client_analysis"], #client_content,
-                            height=500
-                        )
-                        st.session_state["client_analysis"] = results["client_analysis"] # client_content
-                    with col2.container():
-                        st.text_area(
-                            label="<인터뷰 핵심 내용 정리>",
-                            value=results["interview_analysis"], #interview_content,
-                            height=500
-                        )
-                        st.session_state["interview_analysis"] = results["interview_analysis"] # interview_content
+            st.session_state["other_files_analysis"] = other_files_analysis_update
 
     # Render sidebar and get selection (provider and model)
     selection = render_sidebar()
@@ -310,4 +355,4 @@ else:
 st.divider()
 footer_col1, footer_col2, footer_col3 = st.columns([1, 2, 1])
 with footer_col2:
-    st.caption("Made with ❤️ using [CrewAI](https://crewai.com) and [Streamlit](https://streamlit.io)")
+    st.caption("ISD Agent는 실수를 할 수 있습니다. 응답을 다시 한 번 확인하고 비판적으로 검토해주세요.")

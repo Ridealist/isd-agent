@@ -171,4 +171,4 @@ else:
 st.divider()
 footer_col1, footer_col2, footer_col3 = st.columns([1, 2, 1])
 with footer_col2:
-    st.caption("Made with ❤️ using [CrewAI](https://crewai.com) and [Streamlit](https://streamlit.io)")
+    st.caption("ISD Agent는 실수를 할 수 있습니다. 응답을 다시 한 번 확인하고 비판적으로 검토해주세요.")

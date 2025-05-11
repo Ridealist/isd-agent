@@ -22,14 +22,8 @@ st.write("ISD 에이전트는 초보 교수설계자들이 ISD를 수행하는�
 # secrets.toml에서 사용자 정보 가져오기
 users_info = st.secrets["users"]
 
-# 로그인 UI
-## test20 = { password = "6lHK3F", userID = 20 }
-
-username = "test20"
-password = "6lHK3F"
-
-# username = st.text_input("Username")
-# password = st.text_input("Password", type="password")
+username = st.text_input("Username")
+password = st.text_input("Password", type="password")
 
 if st.button("Log in", type="primary"):
     if username not in users_info:

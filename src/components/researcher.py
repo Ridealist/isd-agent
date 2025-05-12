@@ -35,16 +35,17 @@ class GapAnalysisCrew:
                 top_p=0.9,
                 frequency_penalty=0.1,
                 presence_penalty=0.1,
-                seed=42
             )
         self.client_analysis = client_analysis
         self.interview_analysis = interview_analysis
         self.other_files_analysis = other_files_analysis
-        self.user_input = user_input
+
         self.performance_prompt = performance_prompt or PERFORMANCE_ANALYSIS_PROMPT["user"]
         self.achievement_prompt = achievement_prompt or ACHIEVEMENT_ANALYSIS_PROMPT["user"]
         self.environment_prompt = environment_prompt or ENVIRONMENT_ANALYSIS_PROMPT["user"]
         self.solution_prompt = solution_prompt or SOLUTION_ANALYSIS_PROMPT["user"]
+
+        self.user_input = user_input
 
     ###
     ## Agents Settings
@@ -307,6 +308,15 @@ class GapAnalysisCrew:
                 * 3.4. 교육외적 해결안 (필요한 경우만 서술)  
 
             (수행 문제는 **우선순위와 중요도를 기준으로 최대 3개까지만 선정하여 서술**)
+
+            **추가 요구사항:**
+            위의 분석 결과를 마크다운 표 형식으로도 변환하여 제시하시오. 표는 다음과 같은 구조를 따르되, 각 수행 문제별로 하나의 표를 작성하시오:
+
+            | 수행 문제 상황 | 원인 분석 | 교육적 해결안 | 교육외적 해결안 |
+            |------|------|------|------|
+            | (수행 문제에 대한 간결한 사실적 진술) | (수행 문제의 근본 원인 분석) | (실행 가능한 교육 개선 방안) | (필요한 경우에만 제시) |
+
+            각 표는 해당 수행 문제의 핵심 내용을 간단명료하게 정리하여 제시해야 합니다.
         """),
             agent=self.pm(),
             expected_output="맥락 기반 수행 종류별 원인 분석 및 해결방안 종합 보고서"
@@ -386,12 +396,6 @@ class StreamToExpander:
         # 정규 표현식을 사용하여 특정 패턴을 제거
         pattern = r"[\s]*참고 맥락:.*?위 맥락을 기반으로 수행 문제를 사실적으로 기술하고, 원인 분석 및 해결방안을 구분하여 정리하시오.\n"
         cleaned_data = re.sub(pattern, "", cleaned_data, flags=re.DOTALL)
-
-        cleaned_data = re.sub(
-            r'(?s).*다음 정보를 바탕으로\s*([^:]+):.*',   # 캡처 구간 정의(동일)
-            lambda m: m.group(1).strip(),                # ← 내부 공백 유지, 양끝만 제거
-            cleaned_data
-        )
 
         current_agent = None
 

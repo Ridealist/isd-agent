@@ -112,19 +112,19 @@ if st.session_state["logged_in"]:
 
         # Add text areas for prompt editing
         st.session_state["client_prompt"] = st.text_area(
-            "클라이언트 요구사항 분석 프롬프트",
+            "<클라이언트 요구사항 분석 프롬프트>",
             value=st.session_state["client_prompt"],
             height=200
         )
         
         st.session_state["interview_prompt"] = st.text_area(
-            "인터뷰 분석 프롬프트",
+            "<인터뷰 분석 프롬프트>",
             value=st.session_state["interview_prompt"],
             height=200
         )
 
         st.session_state["other_files_prompt"] = st.text_area(
-            "기타 파일 분석 프롬프트",
+            "<기타 파일 분석 프롬프트>",
             value=st.session_state["other_files_prompt"],
             height=200
         )

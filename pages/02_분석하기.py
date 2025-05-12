@@ -99,44 +99,6 @@ if st.session_state["logged_in"]:
     with col2:
         st.title("🔍 :red[ISD Agent] 수행 문제 분석 도우미", anchor=False)
 
-    # Add prompt editing section
-    with st.expander("📝 프롬프트 수정", expanded=False):
-        st.markdown("### 프롬프트 수정")
-        st.markdown("분석에 사용될 프롬프트를 수정할 수 있습니다.")
-        
-        st.session_state["performance_prompt"] = st.text_area(
-            "수행 분석 프롬프트",
-            value=st.session_state["performance_prompt"],
-            height=200
-        )
-        
-        st.session_state["achievement_prompt"] = st.text_area(
-            "성과 분석 프롬프트",
-            value=st.session_state["achievement_prompt"],
-            height=200
-        )
-
-        st.session_state["environment_prompt"] = st.text_area(
-            "환경 분석 프롬프트",
-            value=st.session_state["environment_prompt"],
-            height=200
-        )
-
-        st.session_state["solution_prompt"] = st.text_area(
-            "원인 및 해결방안 분석 프롬프트",
-            value=st.session_state["solution_prompt"],
-            height=200
-        )
-
-    # Render sidebar and get selection (provider and model)
-    selection = render_sidebar()
-
-    # Check if API keys are set based on provider
-    if selection["provider"] == "OpenAI":
-        if not os.environ.get("OPENAI_API_KEY"):
-            st.warning("⚠️ Please enter your OpenAI API key in the sidebar to get started")
-            st.stop()
-
     with st.expander("See Summarization"):
         prev_col1, prev_col2 = st.columns([1, 1])
 
@@ -152,6 +114,48 @@ if st.session_state["logged_in"]:
         if st.session_state["other_files_analysis"]:
             st.markdown("### <기타 파일 통합 분석>")
             st.write(st.session_state["other_files_analysis"])
+
+    # Add prompt editing section
+    with st.expander("📝 프롬프트 수정", expanded=False):
+        st.markdown("### 프롬프트 수정")
+        st.markdown("분석에 사용될 프롬프트를 수정할 수 있습니다.")
+        
+        performance_prompt_update = st.text_area(
+            label="<수행 분석 프롬프트>",
+            value=st.session_state["performance_prompt"],
+            height=200
+        )
+        st.session_state["performance_prompt"] = performance_prompt_update
+
+        achievement_prompt_update = st.text_area(
+            label="<성과 분석 프롬프트>",
+            value=st.session_state["achievement_prompt"],
+            height=200
+        )
+        st.session_state["achievement_prompt"] = achievement_prompt_update
+
+        environment_prompt_update = st.text_area(
+            label="<환경 분석 프롬프트>",
+            value=st.session_state["environment_prompt"],
+            height=200
+        )
+        st.session_state["environment_prompt"] = environment_prompt_update
+
+        solution_prompt_update = st.text_area(
+            label="<원인 및 해결방안 분석 프롬프트>",
+            value=st.session_state["solution_prompt"],
+            height=200
+        )
+        st.session_state["solution_prompt"] = solution_prompt_update
+
+    # Render sidebar and get selection (provider and model)
+    selection = render_sidebar()
+
+    # Check if API keys are set based on provider
+    if selection["provider"] == "OpenAI":
+        if not os.environ.get("OPENAI_API_KEY"):
+            st.warning("⚠️ Please enter your OpenAI API key in the sidebar to get started")
+            st.stop()
 
     if st.session_state["analyze_ready"]:
         col1, col2, col3 = st.columns([1, 1, 1])

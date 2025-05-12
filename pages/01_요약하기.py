@@ -131,7 +131,7 @@ if st.session_state["logged_in"]:
 
     st.subheader("클라이언트 요구사항 파일")
     uploaded_file_client = st.file_uploader(
-        label="클라이언트 인터뷰 - **PDF 파일 형식만 가능**",
+        label="클라이언트 인터뷰 - **'PDF 파일 형식'만 가능**",
         type="pdf",
         accept_multiple_files=False
     )
@@ -143,7 +143,7 @@ if st.session_state["logged_in"]:
 
     st.subheader("인터뷰 내용 파일")
     uploaded_file_interview = st.file_uploader(
-        label="인터뷰 기록 - **PDF 파일 형식만 가능**",
+        label="인터뷰 기록 - **'PDF 파일 형식'만 가능**",
         type='pdf',
         accept_multiple_files=False
     )
@@ -156,7 +156,7 @@ if st.session_state["logged_in"]:
     # Add other files section
     st.subheader("기타 분석 파일")
     uploaded_files_other = st.file_uploader(
-        label="기타 분석 파일 - **PDF 파일 형식만 가능**",
+        label="기타 분석 파일 - **'PDF 파일 형식'으로 여러 파일 업로드 가능**",
         type='pdf',
         accept_multiple_files=True,
         help="여러 개의 파일을 업로드할 수 있습니다."

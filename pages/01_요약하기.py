@@ -296,7 +296,8 @@ if st.session_state["logged_in"]:
             st.warning("⚠️ 분석을 위해 최소한 하나의 파일을 업로드해주세요.")
 
     # Display existing analysis results
-    elif st.session_state["client_analysis"] or st.session_state["interview_analysis"] or st.session_state["other_files_analysis"]:
+    if st.session_state["client_analysis"] or st.session_state["interview_analysis"] or st.session_state["other_files_analysis"]:
+        st.subheader("주요 파일 분석 결과")
         col1, col2 = st.columns([1, 1])
         # Display client analysis if exists
         if st.session_state["client_analysis"]:

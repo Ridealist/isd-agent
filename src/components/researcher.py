@@ -32,7 +32,7 @@ class GapAnalysisCrew:
         self.manager_llm = LLM(
                 #TODO  model="openai/gpt-4.1-2025-04-14",
                 ##TODO gpt-4.1 플래그십 모델로 바꾸기
-                model="openai/gpt-4.1-mini-2025-04-14",
+                model="openai/gpt-4.1-2025-04-14",
                 temperature=0.8,
                 top_p=0.9,
                 frequency_penalty=0.1,

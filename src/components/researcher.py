@@ -23,8 +23,8 @@ class GapAnalysisCrew:
                  performance_prompt=None, achievement_prompt=None, environment_prompt=None,
                  solution_prompt=None):
         self.general_llm = LLM(
-                model="openai/gpt-4.1-mini-2025-04-14",
-                temperature=0.7,
+                model="openai/gpt-4.1-mini",
+                temperature=0.1,
                 top_p=0.9,
                 request_timeout=120,
                 max_tokens=2048
@@ -32,11 +32,9 @@ class GapAnalysisCrew:
         self.manager_llm = LLM(
                 #TODO  model="openai/gpt-4.1-2025-04-14",
                 ##TODO gpt-4.1 플래그십 모델로 바꾸기
-                model="openai/gpt-4.1-2025-04-14",
-                temperature=0.8,
-                top_p=0.9,
-                frequency_penalty=0.1,
-                presence_penalty=0.1,
+                model="openai/gpt-4.1",
+                temperature=1,
+                reasoning_effort="high",
             )
         self.client_analysis = client_analysis
         self.interview_analysis = interview_analysis

@@ -19,7 +19,8 @@ from datetime import datetime
 
 from src.components.sidebar import render_sidebar
 from src.components.researcher import GapAnalysisCrew, StreamToExpander
-from src.components.db import DynamoDBManager
+# DynamoDB 관련 코드 주석 처리
+# from src.components.db import DynamoDBManager
 from src.components.prompts import (
     PERFORMANCE_ANALYSIS_PROMPT,
     ACHIEVEMENT_ANALYSIS_PROMPT,
@@ -176,11 +177,12 @@ with col2:
             else:
                 with st.status("🏗️ **Agents at work...**", state="running", expanded=True) as status:
                     try:
-                        # Initialize DynamoDB manager
-                        db_manager = DynamoDBManager()
-                        # Get current time in KST
-                        kst = pytz.timezone('Asia/Seoul')
-                        timestamp = datetime.now(kst).isoformat()
+                        # DynamoDB 관련 코드 주석 처리
+                        # # Initialize DynamoDB manager
+                        # db_manager = DynamoDBManager()
+                        # # Get current time in KST
+                        # kst = pytz.timezone('Asia/Seoul')
+                        # timestamp = datetime.now(kst).isoformat()
 
                         with st.container(height=500, border=False):
                             sys.stdout = StreamToExpander(st)
@@ -202,14 +204,15 @@ with col2:
 
                             st.session_state["final_report"] = final_report
 
-                            # Save analysis results to DynamoDB
-                            db_manager.insert_chat_data(
-                                student_id=st.session_state["session_id"],
-                                timestamp=timestamp,
-                                who="agent",
-                                content=str(final_report),
-                                context="gap_analysis"
-                            )
+                            # DynamoDB 관련 코드 주석 처리
+                            # # Save analysis results to DynamoDB
+                            # db_manager.insert_chat_data(
+                            #     student_id=st.session_state["session_id"],
+                            #     timestamp=timestamp,
+                            #     who="agent",
+                            #     content=str(final_report),
+                            #     context="gap_analysis"
+                            # )
 
                         status.update(label="✅ Analysis completed!", state="complete", expanded=False)
                         st.session_state["is_end"] = True
@@ -246,11 +249,12 @@ with col2:
                 else:
                     with st.status("🔄 **Reanalyzing with your input...**", state="running", expanded=True) as status:
                         try:
-                            # Initialize DynamoDB manager
-                            db_manager = DynamoDBManager()
-                            # Get current time in KST
-                            kst = pytz.timezone('Asia/Seoul')
-                            timestamp = datetime.now(kst).isoformat()
+                            # DynamoDB 관련 코드 주석 처리
+                            # # Initialize DynamoDB manager
+                            # db_manager = DynamoDBManager()
+                            # # Get current time in KST
+                            # kst = pytz.timezone('Asia/Seoul')
+                            # timestamp = datetime.now(kst).isoformat()
 
                             with st.container(height=500, border=False):
                                 sys.stdout = StreamToExpander(st)
@@ -275,14 +279,15 @@ with col2:
                                 
                                 st.session_state["final_report"] = final_report
 
-                                # Save analysis results to DynamoDB
-                                db_manager.insert_chat_data(
-                                    student_id=st.session_state["session_id"],
-                                    timestamp=timestamp,
-                                    who="agent",
-                                    content=str(final_report),
-                                    context="gap_analysis_reanalyzed"
-                                )
+                                # DynamoDB 관련 코드 주석 처리
+                                # # Save analysis results to DynamoDB
+                                # db_manager.insert_chat_data(
+                                #     student_id=st.session_state["session_id"],
+                                #     timestamp=timestamp,
+                                #     who="agent",
+                                #     content=str(final_report),
+                                #     context="gap_analysis_reanalyzed"
+                                # )
 
                             status.update(label="✅ Reanalysis completed!", state="complete", expanded=True)
 

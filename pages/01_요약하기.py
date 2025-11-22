@@ -24,7 +24,8 @@ from datetime import datetime
 from src.components.llm import get_chat_completion
 from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT, RELATED_DOCUMENTS_PROMPT
 from src.components.sidebar import render_sidebar
-from src.components.db import DynamoDBManager
+# DynamoDB 관련 코드 주석 처리
+# from src.components.db import DynamoDBManager
 
 
 # 로깅 설정
@@ -173,11 +174,12 @@ with col2:
     def analyze_files(client_file=None, interview_file=None, other_files=None):
         logger.info("Received analysis request")
         
-        # DynamoDB 매니저 초기화
-        db_manager = DynamoDBManager()
-        # Get current time in KST
-        kst = pytz.timezone('Asia/Seoul')
-        timestamp = datetime.now(kst).isoformat()
+        # DynamoDB 관련 코드 주석 처리
+        # # DynamoDB 매니저 초기화
+        # db_manager = DynamoDBManager()
+        # # Get current time in KST
+        # kst = pytz.timezone('Asia/Seoul')
+        # timestamp = datetime.now(kst).isoformat()
         
         results = {
             "status": "success",
@@ -195,26 +197,28 @@ with col2:
                 analysis_guide=st.session_state["client_prompt"]
             )
             
-            # 사용자 입력 저장
-            db_manager.insert_chat_data(
-                student_id=st.session_state["session_id"],
-                timestamp=timestamp,
-                who="user",
-                content=client_content,
-                context="requirements_analysis"
-            )
+            # DynamoDB 관련 코드 주석 처리
+            # # 사용자 입력 저장
+            # db_manager.insert_chat_data(
+            #     student_id=st.session_state["session_id"],
+            #     timestamp=timestamp,
+            #     who="user",
+            #     content=client_content,
+            #     context="requirements_analysis"
+            # )
             
             client_analysis = get_chat_completion(client_prompt)
             results["client_analysis"] = client_analysis
             
-            # AI 응답 저장
-            db_manager.insert_chat_data(
-                student_id=st.session_state["session_id"],
-                timestamp=datetime.now(kst).isoformat(),
-                who="agent",
-                content=client_analysis,
-                context="requirements_analysis"
-            )
+            # DynamoDB 관련 코드 주석 처리
+            # # AI 응답 저장
+            # db_manager.insert_chat_data(
+            #     student_id=st.session_state["session_id"],
+            #     timestamp=datetime.now(kst).isoformat(),
+            #     who="agent",
+            #     content=client_analysis,
+            #     context="requirements_analysis"
+            # )
         
         # 인터뷰 파일 처리
         if interview_file:
@@ -225,26 +229,28 @@ with col2:
                 analysis_guide=st.session_state["interview_prompt"]
             )
             
-            # 사용자 입력 저장
-            db_manager.insert_chat_data(
-                student_id=st.session_state["session_id"],
-                timestamp=datetime.now(kst).isoformat(),
-                who="user",
-                content=interview_content,
-                context="interview_analysis"
-            )
+            # DynamoDB 관련 코드 주석 처리
+            # # 사용자 입력 저장
+            # db_manager.insert_chat_data(
+            #     student_id=st.session_state["session_id"],
+            #     timestamp=datetime.now(kst).isoformat(),
+            #     who="user",
+            #     content=interview_content,
+            #     context="interview_analysis"
+            # )
             
             interview_analysis = get_chat_completion(interview_prompt)
             results["interview_analysis"] = interview_analysis
             
-            # AI 응답 저장
-            db_manager.insert_chat_data(
-                student_id=st.session_state["session_id"],
-                timestamp=datetime.now(kst).isoformat(),
-                who="agent",
-                content=interview_analysis,
-                context="interview_analysis"
-            )
+            # DynamoDB 관련 코드 주석 처리
+            # # AI 응답 저장
+            # db_manager.insert_chat_data(
+            #     student_id=st.session_state["session_id"],
+            #     timestamp=datetime.now(kst).isoformat(),
+            #     who="agent",
+            #     content=interview_analysis,
+            #     context="interview_analysis"
+            # )
         
         # 기타 파일 처리 - 모든 파일 내용을 하나로 합침
         if other_files:
@@ -259,26 +265,28 @@ with col2:
                 analysis_guide=st.session_state["other_files_prompt"]
             )
             
-            # 사용자 입력 저장
-            db_manager.insert_chat_data(
-                student_id=st.session_state["session_id"],
-                timestamp=datetime.now(kst).isoformat(),
-                who="user",
-                content=combined_content,
-                context="other_files_analysis"
-            )
+            # DynamoDB 관련 코드 주석 처리
+            # # 사용자 입력 저장
+            # db_manager.insert_chat_data(
+            #     student_id=st.session_state["session_id"],
+            #     timestamp=datetime.now(kst).isoformat(),
+            #     who="user",
+            #     content=combined_content,
+            #     context="other_files_analysis"
+            # )
             
             combined_analysis = get_chat_completion(other_prompt)
             results["other_files_analysis"] = combined_analysis
             
-            # AI 응답 저장
-            db_manager.insert_chat_data(
-                student_id=st.session_state["session_id"],
-                timestamp=datetime.now(kst).isoformat(),
-                who="agent",
-                content=combined_analysis,
-                context="other_files_analysis"
-            )
+            # DynamoDB 관련 코드 주석 처리
+            # # AI 응답 저장
+            # db_manager.insert_chat_data(
+            #     student_id=st.session_state["session_id"],
+            #     timestamp=datetime.now(kst).isoformat(),
+            #     who="agent",
+            #     content=combined_analysis,
+            #     context="other_files_analysis"
+            # )
         
         return results
 

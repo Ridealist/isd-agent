@@ -17,6 +17,7 @@ import os
 import pytz  # Add this import at the top with other imports
 import uuid  # Add this import at the top with other imports
 import streamlit as st
+import sys
 
 from datetime import datetime
 
@@ -52,8 +53,13 @@ st.logo(
 #         Streamlit Session State         #
 #--------------------------------#
 
+# 로그인 기능 비활성화 (주석 처리)
+# if "logged_in" not in st.session_state:
+#     st.session_state["logged_in"] = False
+
+# 로그인 없이 바로 접근 가능하도록 설정
 if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
+    st.session_state["logged_in"] = True  # 항상 로그인된 상태로 설정
 
 # Initialize UUID for the session if not already present
 if "session_id" not in st.session_state:
@@ -90,11 +96,12 @@ def process_pdf_file(file) -> str:
     return full_text
 
 
-if st.session_state["logged_in"]:
-    # Main layout
-    col1, col2, col3 = st.columns([1, 10, 1])
-    with col2:
-        st.title("🔍 :red[ISD Agent] 수행 문제 분석 도우미", anchor=False)
+# 로그인 체크 비활성화 (주석 처리)
+# if st.session_state["logged_in"]:
+# Main layout
+col1, col2, col3 = st.columns([1, 10, 1])
+with col2:
+    st.title("🔍 :red[ISD Agent] 수행 문제 분석 도우미", anchor=False)
 
 
     # Add other files prompt to the prompt editing section
@@ -349,8 +356,9 @@ if st.session_state["logged_in"]:
                 use_container_width=True
             ):
                 st.switch_page("pages/02_분석하기.py")
-else:
-    st.error("먼저 로그인을 해주세요!")
+# 로그인 체크 비활성화 (주석 처리)
+# else:
+#     st.error("먼저 로그인을 해주세요!")
 
 # Add footer
 st.divider()

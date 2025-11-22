@@ -12,6 +12,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 import logging
 import os
 import pytz
+import sys
 import streamlit as st
 
 from datetime import datetime
@@ -83,8 +84,13 @@ st.logo(
 #         Streamlit Session State         #
 #--------------------------------#
 
+# 로그인 기능 비활성화 (주석 처리)
+# if "logged_in" not in st.session_state:
+#     st.session_state["logged_in"] = False
+
+# 로그인 없이 바로 접근 가능하도록 설정
 if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
+    st.session_state["logged_in"] = True  # 항상 로그인된 상태로 설정
 
 if "analyze_ready" not in st.session_state:
     st.session_state["analyze_ready"] = False
@@ -93,11 +99,12 @@ if "is_end" not in st.session_state:
     st.session_state["is_end"] = False
 
 
-if st.session_state["logged_in"]:
-    # Main layout
-    col1, col2, col3 = st.columns([1, 10, 1])
-    with col2:
-        st.title("🔍 :red[ISD Agent] 수행 문제 분석 도우미", anchor=False)
+# 로그인 체크 비활성화 (주석 처리)
+# if st.session_state["logged_in"]:
+# Main layout
+col1, col2, col3 = st.columns([1, 10, 1])
+with col2:
+    st.title("🔍 :red[ISD Agent] 수행 문제 분석 도우미", anchor=False)
 
     with st.expander("See Summarization"):
         prev_col1, prev_col2 = st.columns([1, 1])
@@ -167,7 +174,7 @@ if st.session_state["logged_in"]:
                 with st.expander(label="✅ Analysis completed!", expanded=False):
                     st.markdown(st.session_state["final_report"])
             else:
-                with st.status("🤖 **Agents at work...**", state="running", expanded=True) as status:
+                with st.status("🏗️ **Agents at work...**", state="running", expanded=True) as status:
                     try:
                         # Initialize DynamoDB manager
                         db_manager = DynamoDBManager()
@@ -305,8 +312,9 @@ if st.session_state["logged_in"]:
                     use_container_width=True
                 ):
                     st.switch_page("pages/03_정리하기.py")
-else:
-    st.error("먼저 로그인을 해주세요!")
+# 로그인 체크 비활성화 (주석 처리)
+# else:
+#     st.error("먼저 로그인을 해주세요!")
 
 # Add footer
 st.divider()

@@ -1,5 +1,5 @@
 # Base 이미지
-FROM python:3.12-slim
+FROM python:3.11-slim-bookworm
 
 # 2. 작업 디렉토리를 /app으로 설정
 WORKDIR /app
@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
     libmagic1 \
     build-essential \
     curl \
-    software-properties-common \
     git \
     pandoc \
     && rm -rf /var/lib/apt/lists/*
@@ -21,7 +20,7 @@ COPY requirements.txt /app/
 RUN pip3 install --upgrade pip
 
 # 4-2. requirements.txt에 명시된 패키지 설치
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # 4-3. reinstall python-magic
 RUN pip install --upgrade python-magic

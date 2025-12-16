@@ -185,15 +185,17 @@ class GapAnalysisCrew:
     ## Tasks Settings
     ###
     def analyze_performance(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
-        return Task(description=dedent(f"""
-            {PERFORMANCE_ANALYSIS_PROMPT["system"].format(
-                text=f"""
+        text_content = f"""
                 > 클라이언트 요구사항: {client_analysis}
                 > 인터뷰 분석 결과: {interview_analysis}
                 > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
-                """,
-                analysis_guide=self.performance_prompt
-            )}
+                """
+        formatted_prompt = PERFORMANCE_ANALYSIS_PROMPT["system"].format(
+            text=text_content,
+            analysis_guide=self.performance_prompt
+        )
+        return Task(description=dedent(f"""
+            {formatted_prompt}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -202,15 +204,17 @@ class GapAnalysisCrew:
         )
 
     def analyze_achievement(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
-        return Task(description=dedent(f"""
-            {ACHIEVEMENT_ANALYSIS_PROMPT["system"].format(
-                text=f"""
+        text_content = f"""
                 > 클라이언트 요구사항: {client_analysis}
                 > 인터뷰 분석 결과: {interview_analysis}
                 > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
-                """,
-                analysis_guide=self.achievement_prompt
-            )}
+                """
+        formatted_prompt = ACHIEVEMENT_ANALYSIS_PROMPT["system"].format(
+            text=text_content,
+            analysis_guide=self.achievement_prompt
+        )
+        return Task(description=dedent(f"""
+            {formatted_prompt}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -219,15 +223,17 @@ class GapAnalysisCrew:
         )
 
     def analyze_environment(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
-        return Task(description=dedent(f"""
-            {ENVIRONMENT_ANALYSIS_PROMPT["system"].format(
-                text=f"""
+        text_content = f"""
                 > 클라이언트 요구사항: {client_analysis}
                 > 인터뷰 분석 결과: {interview_analysis}
                 > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
-                """,
-                analysis_guide=self.environment_prompt
-            )}
+                """
+        formatted_prompt = ENVIRONMENT_ANALYSIS_PROMPT["system"].format(
+            text=text_content,
+            analysis_guide=self.environment_prompt
+        )
+        return Task(description=dedent(f"""
+            {formatted_prompt}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),
@@ -236,15 +242,17 @@ class GapAnalysisCrew:
         )
 
     def analyze_solution(self, client_analysis, interview_analysis, other_files_analysis=None, user_input=None) -> Task:
-        return Task(description=dedent(f"""
-            {SOLUTION_ANALYSIS_PROMPT["system"].format(
-                text=f"""
+        text_content = f"""
                 > 클라이언트 요구사항: {client_analysis}
                 > 인터뷰 분석 결과: {interview_analysis}
                 > 기타 파일 분석 결과: {other_files_analysis if other_files_analysis else "없음"}
-                """,
-                analysis_guide=self.solution_prompt
-            )}
+                """
+        formatted_prompt = SOLUTION_ANALYSIS_PROMPT["system"].format(
+            text=text_content,
+            analysis_guide=self.solution_prompt
+        )
+        return Task(description=dedent(f"""
+            {formatted_prompt}
 
             ** > 사용자 추가 수정 요청사항: {user_input} **
         """),

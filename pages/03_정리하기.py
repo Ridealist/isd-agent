@@ -6,13 +6,21 @@ try:
 except (ImportError, KeyError):
     pass
 
+import pypandoc
+import os
+
+def ensure_pandoc():
+    try:
+        pypandoc.get_pandoc_version()
+    except OSError:
+        pypandoc.download_pandoc()
+        os.environ["PYPANDOC_PANDOC"] = pypandoc.get_pandoc_path()
+
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import tempfile
-import pypandoc
 import logging
-import os
 import pytz
 import sys
 import streamlit as st

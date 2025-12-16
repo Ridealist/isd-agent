@@ -9,12 +9,15 @@ except (ImportError, KeyError):
 import pypandoc
 import os
 
+@st.cache_resource
 def ensure_pandoc():
     try:
         pypandoc.get_pandoc_version()
     except OSError:
         pypandoc.download_pandoc()
         os.environ["PYPANDOC_PANDOC"] = pypandoc.get_pandoc_path()
+
+ensure_pandoc()
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)

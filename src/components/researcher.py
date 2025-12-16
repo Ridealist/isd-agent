@@ -26,7 +26,6 @@ class GapAnalysisCrew:
                 model="openai/gpt-4.1-mini",
                 temperature=0.1,
                 top_p=0.9,
-                request_timeout=120,
                 max_tokens=2048
             )
         self.manager_llm = LLM(

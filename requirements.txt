@@ -1,7 +1,6 @@
-crewai
-crewai-tools
-streamlit
-exa-py
+crewai==0.102.0
+crewai-tools==0.36.0
+streamlit==1.46.1
 requests
 # unstructured
 # unstructured-inference
@@ -10,4 +9,3 @@ PyPDF2
 pypandoc[pandoc]
 python-magic
 pysqlite3-binary
-boto3

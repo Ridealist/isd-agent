@@ -18,7 +18,7 @@ import streamlit as st
 from datetime import datetime
 
 from src.components.sidebar import render_sidebar
-from src.components.researcher import GapAnalysisCrew, StreamToExpander
+from src.components.researcher import GapAnalysisCrew
 # DynamoDB 관련 코드 주석 처리
 # from src.components.db import DynamoDBManager
 from src.components.prompts import (
@@ -175,7 +175,8 @@ with col2:
                 with st.expander(label="✅ Analysis completed!", expanded=False):
                     st.markdown(st.session_state["final_report"])
             else:
-                with st.status("🏗️ **Agents at work...**", state="running", expanded=True) as status:
+                # sys.stdout 리다이렉션 제거 - 배포 환경 안정성을 위해 spinner만 사용
+                with st.spinner("🏗️ Agents are analyzing... This may take a few minutes."):
                     try:
                         # DynamoDB 관련 코드 주석 처리
                         # # Initialize DynamoDB manager
@@ -184,41 +185,38 @@ with col2:
                         # kst = pytz.timezone('Asia/Seoul')
                         # timestamp = datetime.now(kst).isoformat()
 
-                        with st.container(height=500, border=False):
-                            sys.stdout = StreamToExpander(st)
-                            crew = GapAnalysisCrew(
-                                client_analysis=st.session_state["client_analysis"],
-                                interview_analysis=st.session_state["interview_analysis"],
-                                other_files_analysis=st.session_state["other_files_analysis"],
-                                performance_prompt=st.session_state["performance_prompt"],
-                                achievement_prompt=st.session_state["achievement_prompt"],
-                                environment_prompt=st.session_state["environment_prompt"],
-                                solution_prompt=st.session_state["solution_prompt"],
-                            )
+                        crew = GapAnalysisCrew(
+                            client_analysis=st.session_state["client_analysis"],
+                            interview_analysis=st.session_state["interview_analysis"],
+                            other_files_analysis=st.session_state["other_files_analysis"],
+                            performance_prompt=st.session_state["performance_prompt"],
+                            achievement_prompt=st.session_state["achievement_prompt"],
+                            environment_prompt=st.session_state["environment_prompt"],
+                            solution_prompt=st.session_state["solution_prompt"],
+                        )
 
-                            final_report = crew.analyze(
-                                st.session_state["client_analysis"],
-                                st.session_state["interview_analysis"],
-                                st.session_state["other_files_analysis"],
-                            )
+                        final_report = crew.analyze(
+                            st.session_state["client_analysis"],
+                            st.session_state["interview_analysis"],
+                            st.session_state["other_files_analysis"],
+                        )
 
-                            st.session_state["final_report"] = final_report
+                        st.session_state["final_report"] = final_report
 
-                            # DynamoDB 관련 코드 주석 처리
-                            # # Save analysis results to DynamoDB
-                            # db_manager.insert_chat_data(
-                            #     student_id=st.session_state["session_id"],
-                            #     timestamp=timestamp,
-                            #     who="agent",
-                            #     content=str(final_report),
-                            #     context="gap_analysis"
-                            # )
+                        # DynamoDB 관련 코드 주석 처리
+                        # # Save analysis results to DynamoDB
+                        # db_manager.insert_chat_data(
+                        #     student_id=st.session_state["session_id"],
+                        #     timestamp=timestamp,
+                        #     who="agent",
+                        #     content=str(final_report),
+                        #     context="gap_analysis"
+                        # )
 
-                        status.update(label="✅ Analysis completed!", state="complete", expanded=False)
                         st.session_state["is_end"] = True
+                        st.success("✅ Analysis completed!")
 
                     except Exception as e:
-                        status.update(label="❌ Error occurred", state="error")
                         st.error(f"An error occurred: {str(e)}")
                         logger.error(f"Error during analysis: {str(e)}", exc_info=True)
                         st.stop()
@@ -247,7 +245,8 @@ with col2:
                 if not user_input:
                     st.error("추가 분석 지시사항을 입력해주세요.")
                 else:
-                    with st.status("🔄 **Reanalyzing with your input...**", state="running", expanded=True) as status:
+                    # sys.stdout 리다이렉션 제거 - 배포 환경 안정성을 위해 spinner만 사용
+                    with st.spinner("🔄 Reanalyzing with your input... This may take a few minutes."):
                         try:
                             # DynamoDB 관련 코드 주석 처리
                             # # Initialize DynamoDB manager
@@ -256,43 +255,40 @@ with col2:
                             # kst = pytz.timezone('Asia/Seoul')
                             # timestamp = datetime.now(kst).isoformat()
 
-                            with st.container(height=500, border=False):
-                                sys.stdout = StreamToExpander(st)
-                                crew = GapAnalysisCrew(
-                                    client_analysis=st.session_state["client_analysis"],
-                                    interview_analysis=st.session_state["interview_analysis"],
-                                    other_files_analysis=st.session_state["other_files_analysis"],
-                                    user_input=user_input,
-                                    performance_prompt=st.session_state["performance_prompt"],
-                                    achievement_prompt=st.session_state["achievement_prompt"],
-                                    environment_prompt=st.session_state["environment_prompt"],
-                                    solution_prompt=st.session_state["solution_prompt"],
-                                )
-                                
-                                # 사용자 입력을 추가 파라미터로 전달
-                                final_report = crew.analyze(
-                                    st.session_state["client_analysis"],
-                                    st.session_state["interview_analysis"],
-                                    st.session_state["other_files_analysis"],
-                                    user_input=user_input
-                                )
-                                
-                                st.session_state["final_report"] = final_report
+                            crew = GapAnalysisCrew(
+                                client_analysis=st.session_state["client_analysis"],
+                                interview_analysis=st.session_state["interview_analysis"],
+                                other_files_analysis=st.session_state["other_files_analysis"],
+                                user_input=user_input,
+                                performance_prompt=st.session_state["performance_prompt"],
+                                achievement_prompt=st.session_state["achievement_prompt"],
+                                environment_prompt=st.session_state["environment_prompt"],
+                                solution_prompt=st.session_state["solution_prompt"],
+                            )
+                            
+                            # 사용자 입력을 추가 파라미터로 전달
+                            final_report = crew.analyze(
+                                st.session_state["client_analysis"],
+                                st.session_state["interview_analysis"],
+                                st.session_state["other_files_analysis"],
+                                user_input=user_input
+                            )
+                            
+                            st.session_state["final_report"] = final_report
 
-                                # DynamoDB 관련 코드 주석 처리
-                                # # Save analysis results to DynamoDB
-                                # db_manager.insert_chat_data(
-                                #     student_id=st.session_state["session_id"],
-                                #     timestamp=timestamp,
-                                #     who="agent",
-                                #     content=str(final_report),
-                                #     context="gap_analysis_reanalyzed"
-                                # )
+                            # DynamoDB 관련 코드 주석 처리
+                            # # Save analysis results to DynamoDB
+                            # db_manager.insert_chat_data(
+                            #     student_id=st.session_state["session_id"],
+                            #     timestamp=timestamp,
+                            #     who="agent",
+                            #     content=str(final_report),
+                            #     context="gap_analysis_reanalyzed"
+                            # )
 
-                            status.update(label="✅ Reanalysis completed!", state="complete", expanded=True)
+                            st.success("✅ Reanalysis completed!")
 
                         except Exception as e:
-                            status.update(label="❌ Error occurred", state="error")
                             st.error(f"An error occurred: {str(e)}")
                             st.stop()
 

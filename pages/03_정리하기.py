@@ -8,6 +8,7 @@ except (ImportError, KeyError):
 
 import pypandoc
 import os
+import streamlit as st
 
 @st.cache_resource
 def ensure_pandoc():

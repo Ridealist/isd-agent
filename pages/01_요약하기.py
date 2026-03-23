@@ -24,7 +24,9 @@ from datetime import datetime
 from src.components.llm import get_chat_completion
 from src.components.prompts import CLIENT_REQUIREMENTS_PROMPT, INTERVIEW_PROMPT, RELATED_DOCUMENTS_PROMPT
 from src.components.sidebar import render_sidebar
-# DynamoDB 관련 코드 주석 처리
+# [DISABLED] AWS DynamoDB 연동 import
+# DynamoDBManager: 분석 결과를 DynamoDB/S3에 저장하는 클래스 (src/components/db.py 참고)
+# 재활성화 시 아래 주석 해제 및 analyze_files() 내 db_manager 호출 코드 주석 해제 필요
 # from src.components.db import DynamoDBManager
 
 
@@ -174,10 +176,9 @@ with col2:
     def analyze_files(client_file=None, interview_file=None, other_files=None):
         logger.info("Received analysis request")
         
-        # DynamoDB 관련 코드 주석 처리
-        # # DynamoDB 매니저 초기화
+        # [DISABLED] AWS DynamoDB 세션 초기화
+        # 분석 시작 시 DynamoDB 매니저 및 KST 타임스탬프 초기화
         # db_manager = DynamoDBManager()
-        # # Get current time in KST
         # kst = pytz.timezone('Asia/Seoul')
         # timestamp = datetime.now(kst).isoformat()
         
@@ -197,8 +198,7 @@ with col2:
                 analysis_guide=st.session_state["client_prompt"]
             )
             
-            # DynamoDB 관련 코드 주석 처리
-            # # 사용자 입력 저장
+            # [DISABLED] S3 업로드 + DynamoDB 저장: 클라이언트 요구사항 사용자 입력
             # db_manager.insert_chat_data(
             #     student_id=st.session_state["session_id"],
             #     timestamp=timestamp,
@@ -206,12 +206,11 @@ with col2:
             #     content=client_content,
             #     context="requirements_analysis"
             # )
-            
+
             client_analysis = get_chat_completion(client_prompt)
             results["client_analysis"] = client_analysis
-            
-            # DynamoDB 관련 코드 주석 처리
-            # # AI 응답 저장
+
+            # [DISABLED] S3 업로드 + DynamoDB 저장: 클라이언트 요구사항 AI 응답
             # db_manager.insert_chat_data(
             #     student_id=st.session_state["session_id"],
             #     timestamp=datetime.now(kst).isoformat(),
@@ -229,8 +228,7 @@ with col2:
                 analysis_guide=st.session_state["interview_prompt"]
             )
             
-            # DynamoDB 관련 코드 주석 처리
-            # # 사용자 입력 저장
+            # [DISABLED] S3 업로드 + DynamoDB 저장: 인터뷰 분석 사용자 입력
             # db_manager.insert_chat_data(
             #     student_id=st.session_state["session_id"],
             #     timestamp=datetime.now(kst).isoformat(),
@@ -238,12 +236,11 @@ with col2:
             #     content=interview_content,
             #     context="interview_analysis"
             # )
-            
+
             interview_analysis = get_chat_completion(interview_prompt)
             results["interview_analysis"] = interview_analysis
-            
-            # DynamoDB 관련 코드 주석 처리
-            # # AI 응답 저장
+
+            # [DISABLED] S3 업로드 + DynamoDB 저장: 인터뷰 분석 AI 응답
             # db_manager.insert_chat_data(
             #     student_id=st.session_state["session_id"],
             #     timestamp=datetime.now(kst).isoformat(),
@@ -265,8 +262,7 @@ with col2:
                 analysis_guide=st.session_state["other_files_prompt"]
             )
             
-            # DynamoDB 관련 코드 주석 처리
-            # # 사용자 입력 저장
+            # [DISABLED] S3 업로드 + DynamoDB 저장: 기타 파일 분석 사용자 입력
             # db_manager.insert_chat_data(
             #     student_id=st.session_state["session_id"],
             #     timestamp=datetime.now(kst).isoformat(),
@@ -274,12 +270,11 @@ with col2:
             #     content=combined_content,
             #     context="other_files_analysis"
             # )
-            
+
             combined_analysis = get_chat_completion(other_prompt)
             results["other_files_analysis"] = combined_analysis
-            
-            # DynamoDB 관련 코드 주석 처리
-            # # AI 응답 저장
+
+            # [DISABLED] S3 업로드 + DynamoDB 저장: 기타 파일 분석 AI 응답
             # db_manager.insert_chat_data(
             #     student_id=st.session_state["session_id"],
             #     timestamp=datetime.now(kst).isoformat(),

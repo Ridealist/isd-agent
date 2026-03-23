@@ -19,7 +19,9 @@ from datetime import datetime
 
 from src.components.sidebar import render_sidebar
 from src.components.researcher import GapAnalysisCrew, StreamToExpander
-# DynamoDB 관련 코드 주석 처리
+# [DISABLED] AWS DynamoDB 연동 import
+# DynamoDBManager: 분석 결과를 DynamoDB/S3에 저장하는 클래스 (src/components/db.py 참고)
+# 재활성화 시 아래 주석 해제 및 start_research/reanalyze 블록 내 db_manager 호출 코드 주석 해제 필요
 # from src.components.db import DynamoDBManager
 from src.components.prompts import (
     PERFORMANCE_ANALYSIS_PROMPT,
@@ -177,10 +179,9 @@ with col2:
             else:
                 with st.status("🏗️ **Agents at work...**", state="running", expanded=True) as status:
                     try:
-                        # DynamoDB 관련 코드 주석 처리
-                        # # Initialize DynamoDB manager
+                        # [DISABLED] AWS DynamoDB 세션 초기화 (최초 분석)
+                        # GapAnalysis 시작 시 DynamoDB 매니저 및 KST 타임스탬프 초기화
                         # db_manager = DynamoDBManager()
-                        # # Get current time in KST
                         # kst = pytz.timezone('Asia/Seoul')
                         # timestamp = datetime.now(kst).isoformat()
 
@@ -204,8 +205,7 @@ with col2:
 
                             st.session_state["final_report"] = final_report
 
-                            # DynamoDB 관련 코드 주석 처리
-                            # # Save analysis results to DynamoDB
+                            # [DISABLED] S3 업로드 + DynamoDB 저장: GapAnalysis 최종 보고서
                             # db_manager.insert_chat_data(
                             #     student_id=st.session_state["session_id"],
                             #     timestamp=timestamp,
@@ -249,10 +249,9 @@ with col2:
                 else:
                     with st.status("🔄 **Reanalyzing with your input...**", state="running", expanded=True) as status:
                         try:
-                            # DynamoDB 관련 코드 주석 처리
-                            # # Initialize DynamoDB manager
+                            # [DISABLED] AWS DynamoDB 세션 초기화 (재분석)
+                            # 재분석 시작 시 DynamoDB 매니저 및 KST 타임스탬프 초기화
                             # db_manager = DynamoDBManager()
-                            # # Get current time in KST
                             # kst = pytz.timezone('Asia/Seoul')
                             # timestamp = datetime.now(kst).isoformat()
 
@@ -279,8 +278,7 @@ with col2:
                                 
                                 st.session_state["final_report"] = final_report
 
-                                # DynamoDB 관련 코드 주석 처리
-                                # # Save analysis results to DynamoDB
+                                # [DISABLED] S3 업로드 + DynamoDB 저장: GapAnalysis 재분석 보고서
                                 # db_manager.insert_chat_data(
                                 #     student_id=st.session_state["session_id"],
                                 #     timestamp=timestamp,

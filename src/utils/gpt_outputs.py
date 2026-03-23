@@ -1,4 +1,6 @@
 
+from crewai import Agent, Task
+
 def pm(self) -> Agent:
     return Agent(
         role="프로젝트 매니저",

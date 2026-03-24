@@ -1,4 +1,4 @@
-litellm @ git+https://github.com/BerriAI/litellm.git@v1.60.2crewai[tools]==0.102.0
+litellm @ git+https://github.com/BerriAI/litellm.git@v1.60.2
 crewai==0.102.0
 streamlit==1.46.1
 requests

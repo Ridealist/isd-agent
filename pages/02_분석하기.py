@@ -68,14 +68,6 @@ if "solution_prompt" not in st.session_state:
 #--------------------------------#
 #         Streamlit App          #
 #--------------------------------#
-# Configure the page
-st.set_page_config(
-    page_title="ISD-Agent",
-    page_icon="🕵️‍♂️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 # Logo
 st.logo(
     "https://media.licdn.com/dms/image/v2/C511BAQFHW_naY__2Fg/company-background_10000/company-background_10000/0/1583927014937/iled_lighting_systems_pvt_ltd__cover?e=2147483647&v=beta&t=Y1x2WJMstxhMwG8RDFgTgTQbhYyn6Us6rRGDRtsiaoA",
@@ -87,14 +79,6 @@ st.logo(
 #         Streamlit Session State         #
 #--------------------------------#
 
-# 로그인 기능 비활성화 (주석 처리)
-# if "logged_in" not in st.session_state:
-#     st.session_state["logged_in"] = False
-
-# 로그인 없이 바로 접근 가능하도록 설정
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = True  # 항상 로그인된 상태로 설정
-
 if "analyze_ready" not in st.session_state:
     st.session_state["analyze_ready"] = False
 
@@ -102,8 +86,6 @@ if "is_end" not in st.session_state:
     st.session_state["is_end"] = False
 
 
-# 로그인 체크 비활성화 (주석 처리)
-# if st.session_state["logged_in"]:
 # Main layout
 col1, col2, col3 = st.columns([1, 10, 1])
 with col2:
@@ -315,9 +297,6 @@ with col2:
                     use_container_width=True
                 ):
                     st.switch_page("pages/03_정리하기.py")
-# 로그인 체크 비활성화 (주석 처리)
-# else:
-#     st.error("먼저 로그인을 해주세요!")
 
 # Add footer
 st.divider()

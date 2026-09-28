@@ -90,8 +90,31 @@ pip install -r requirements.txt
 
 4. Run the application:
 ```bash
-streamlit run streamlit_app.py
+conda activate isdagent
+streamlit run main.py
 ```
+
+## 🔑 입장코드 설정
+
+아이디·비밀번호 대신 공용 입장코드를 입력해 입장합니다. 인증 전에는
+메인·요약·분석·정리 페이지에 접근할 수 없습니다.
+
+`.streamlit/secrets.toml`의 최상위 항목(다른 `[섹션]`보다 위)에 다음을 추가하세요.
+실제 코드는 Git에 커밋하지 않습니다.
+
+```toml
+ENTRY_CODE = "사용할-입장코드"
+```
+
+환경변수 `ENTRY_CODE`를 설정하면 위 파일보다 우선합니다. 배포 환경에서도
+Secrets 또는 환경변수에 코드를 설정해야 합니다. 미설정 또는 빈 코드는 입장을
+차단합니다. 설정 변경 후 앱을 재시작하면 새 코드가 적용됩니다.
+
+인증은 브라우저 세션 동안 유지되며, 새 세션에서는 다시 입력합니다.
+사이드바의 **나가기**는 인증과 업로드·분석 결과 등 현재 작업 내용을 초기화합니다.
+공용 코드는 개인 계정을 구분하지 않으며, 각 세션에는 별도 UUID를 부여합니다.
+
+인증 회귀 테스트: `python -m unittest discover -s test -p 'test_auth.py'`
 
 ## 🔑 API Keys Setup
 
